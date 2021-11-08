@@ -14,11 +14,13 @@ jobs:
       with:
         node-version: '14.5.0'
     - name: Install Dependencies
-      run:
+      run: |
+        cd NexusAPI
         npm install
     - name: Testing Server
-      run:
-        npm start
+      run: |
+        cd NexusAPI
+        npm start 
 
   DeployToHeroku:
     needs: [BuildAndRun]
