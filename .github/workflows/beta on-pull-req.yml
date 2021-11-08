@@ -18,6 +18,7 @@ jobs:
         npm install
     - name: Testing Server
       run: |
+        cd NexusAPI
         npm start &
         PID=$!
         sleep 6
