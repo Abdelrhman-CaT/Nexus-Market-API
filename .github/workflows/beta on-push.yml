@@ -40,7 +40,7 @@ jobs:
         heroku_branch: master
         buildpack: https://github.com/heroku/heroku-buildpack-nodejs#latest
         # The subfolder where your built code is sitted, e.g. `dist`.
-        #subfolder: Frontend
+        subfolder: NexusAPI
 
   mergeToMain:
     needs: [DeployToHeroku]
