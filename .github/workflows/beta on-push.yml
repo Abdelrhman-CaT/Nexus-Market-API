@@ -20,7 +20,10 @@ jobs:
     - name: Testing Server
       run: |
         cd NexusAPI
-        npm start 
+        npm start &
+        PID=$!
+        sleep 6
+        kill $PID 
 
   DeployToHeroku:
     needs: [BuildAndRun]
