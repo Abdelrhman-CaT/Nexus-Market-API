@@ -22,7 +22,8 @@ var userSchema = new schema({
 /*
 // for distributed db:
 module.exports = db.firstdatabase.model('User' , userSchema);
-
+*/
+/*
 // for monolithic db:
 module.exports = mongoose.model('User', userSchema);
 */
