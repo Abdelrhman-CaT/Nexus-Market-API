@@ -19,20 +19,9 @@ describe("Initial test", ()=>{
             });
         });
         
-        it("should admin", (done)=>{
+        it("should test2", (done)=>{
             request(server)
-            .get('/users/d')
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("res", "respond with a resource");
-                done();
-            });
-        });
-
-        it("should member", (done)=>{
-            request(server)
-            .get('/users/b')
+            .get('/users/abc')
             .end((err, res)=>{
                 res.should.have.status(200);
                 res.body.should.be.a('object');
