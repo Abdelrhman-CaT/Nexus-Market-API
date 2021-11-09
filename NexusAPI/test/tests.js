@@ -19,7 +19,7 @@ describe("Initial test", ()=>{
             });
         });
         
-        xit("should test2", (done)=>{
+        it("should test2", (done)=>{
             request(server)
             .get('/users/abc')
             .end((err, res)=>{
