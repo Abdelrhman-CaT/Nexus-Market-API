@@ -18,13 +18,14 @@ describe("Initial test", ()=>{
                 done();
             });
         });
-        it("should should fail", (done)=>{
+        
+        it("should show output", (done)=>{
             request(server)
             .get('/users/b')
             .end((err, res)=>{
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property("res", "responds with a resource");
+                res.body.should.have.property("res", "respond with a resource");
                 done();
             });
         });
