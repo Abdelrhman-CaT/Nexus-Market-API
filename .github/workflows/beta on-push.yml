@@ -6,27 +6,27 @@ on:
     
 jobs:  
 
-  BuildAndRun:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '14.5.0'
-    - name: Install Dependencies
-      run: |
-        cd NexusAPI
-        npm install
-    - name: Testing Server
-      run: |
-        cd NexusAPI
-        npm start &
-        PID=$!
-        sleep 6
-        kill $PID 
+  # BuildAndRun:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@v2
+  #     with:
+  #       node-version: '14.5.0'
+  #   - name: Install Dependencies
+  #     run: |
+  #       cd NexusAPI
+  #       npm install
+  #   - name: Testing Server
+  #     run: |
+  #       cd NexusAPI
+  #       npm start &
+  #       PID=$!
+  #       sleep 6
+  #       kill $PID 
 
   DeployToHeroku:
-    needs: [BuildAndRun]
+    #needs: [BuildAndRun]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -42,7 +42,7 @@ jobs:
         # The app name to use for deploying/updating
         app_name: nexus-market
         # The Heroku branch name that you would like to deploy to (`master` or `main`).
-        heroku_branch: master
+        heroku_branch: main
         buildpack: https://github.com/heroku/heroku-buildpack-nodejs#latest
         # The subfolder where your built code is sitted, e.g. `dist`.
         subfolder: NexusAPI
