@@ -25,7 +25,7 @@ describe("Initial test", ()=>{
             .end((err, res)=>{
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property("res", "respod with a resource");
+                res.body.should.have.property("res", "respond with a resource");
                 done();
             });
         });
