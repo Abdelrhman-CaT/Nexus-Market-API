@@ -19,7 +19,5 @@ jobs:
     - name: Testing Server
       run: |
         cd NexusAPI
-        npm start &
-        PID=$!
-        sleep 6
-        kill $PID
+        npm install mocha chai chai-http supertest --save-dev
+        npm test
