@@ -7,7 +7,7 @@ userRouter.get('/', function(req, res, next) {
 });
 
 userRouter.get('/d', function(req, res, next) {
-  res.json({res:'respod with a resource'});
+  res.json({res:'respond with a resource'});
 });
 
 module.exports = userRouter;
