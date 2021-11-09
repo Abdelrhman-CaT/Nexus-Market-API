@@ -18,38 +18,5 @@ describe("Initial test", ()=>{
                 done();
             });
         });
-        
-        it("should test2", (done)=>{
-            request(server)
-            .get('/users/abc')
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("res", "respond with a resource");
-                done();
-            });
-        });
-
-        xit("should test1", (done)=>{
-            request(server)
-            .get('/users/abc')
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("res", "respond with a resource");
-                done();
-            });
-        });
-
-        xit("should 2 test1", (done)=>{
-            request(server)
-            .get('/users/abc')
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("res", "respond with a resource");
-                done();
-            });
-        });
     })
 });
