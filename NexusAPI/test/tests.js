@@ -19,7 +19,7 @@ describe("Initial test", ()=>{
             });
         });
         
-        xit("should admin", (done)=>{
+        it("should admin", (done)=>{
             request(server)
             .get('/users/d')
             .end((err, res)=>{
