@@ -27,6 +27,6 @@ exports.connect = Mongoose.connect(url).then((db) => {
   })
   .catch((err) => {
     console.log(err);
-  });;
+  });
 */
   
