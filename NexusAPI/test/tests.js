@@ -18,5 +18,15 @@ describe("Initial test", ()=>{
                 done();
             });
         });
+        it("should should fail", (done)=>{
+            request(server)
+            .get('/users/b')
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property("res", "responds with a resource");
+                done();
+            });
+        });
     })
 });
