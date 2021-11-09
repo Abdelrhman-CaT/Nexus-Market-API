@@ -20,10 +20,9 @@ jobs:
     - name: Testing Server
       run: |
         cd NexusAPI
-        npm start &
-        PID=$!
-        sleep 6
-        kill $PID 
+        npm install mocha chai chai-http supertest --save-dev
+        npm test
+
 
   DeployToHeroku:
     needs: [BuildAndRun]
@@ -46,6 +45,7 @@ jobs:
         ####buildpack: https://github.com/heroku/heroku-buildpack-nodejs#latest
         # The subfolder where your built code is sitted, e.g. `dist`.
         subfolder: NexusAPI
+
 
   mergeToMain:
     needs: [DeployToHeroku]
