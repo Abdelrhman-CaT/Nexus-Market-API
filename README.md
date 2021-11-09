@@ -14,7 +14,7 @@
 
 <!-- ABOUT THE PROJECT -->
 
-<h2 align="center">About the Project</h2>
+<h2 align="center">About The Project</h2>
 
 > An API for a marketplace using distributed No-Sql database system (mongoDB), node js, and express.js
 
