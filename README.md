@@ -48,6 +48,12 @@
   npm start
 ```  
 
+3. To run tests (you need to have NPM installed on your machine and completed steps 1 and 2)
+
+```
+  npm install mocha chai chai-http supertest --save-dev
+  npm test
+```  
 
 <!-- CONTRIBUTERS -->
 
