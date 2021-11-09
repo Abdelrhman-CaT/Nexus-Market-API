@@ -1,0 +1,60 @@
+name: NodeJS application
+
+on:
+  push:
+    branches: [ beta ]
+    
+jobs:  
+
+  BuildAndRun:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14.5.0'
+    - name: Install Dependencies
+      run: |
+        cd NexusAPI
+        npm install
+    - name: Testing Server
+      run: |
+        cd NexusAPI
+        npm start &
+        PID=$!
+        sleep 6
+        kill $PID 
+
+  DeployToHeroku:
+    needs: [BuildAndRun]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Git deploy to Heroku
+      # You may pin to the exact commit or the version.
+      # uses: onekiloparsec/heroku-node-deploy-subfolder@85d5701f800be8126e12b7f6f47e965c71f67b56
+      uses: onekiloparsec/heroku-node-deploy-subfolder@v1.1.0
+      with:
+        # Your Heroku API key. This will be used for authentication. You can find it in your Heroku account settings
+        api_key: 817ea5ed-cca2-4b1c-85e9-58e17f627e6e
+        # The email of your Heroku account (needed for auth).
+        email: mindenslavement@gmail.com
+        # The app name to use for deploying/updating
+        app_name: nexus-market
+        # The Heroku branch name that you would like to deploy to (`master` or `main`).
+        heroku_branch: master
+        ####buildpack: https://github.com/heroku/heroku-buildpack-nodejs#latest
+        # The subfolder where your built code is sitted, e.g. `dist`.
+        subfolder: NexusAPI
+
+  mergeToMain:
+    needs: [DeployToHeroku]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Merge staging -> main
+        uses: devmasx/merge-branch@v1.3.1
+        with:
+          type: now
+          target_branch: main
+          github_token: ${{ github.token }}
