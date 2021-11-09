@@ -18,5 +18,16 @@ describe("Initial test", ()=>{
                 done();
             });
         });
+
+        it("should show output", (done)=>{
+            request(server)
+            .get('/users/d')
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property("res", "respod with a resource");
+                done();
+            });
+        });
     })
 });
