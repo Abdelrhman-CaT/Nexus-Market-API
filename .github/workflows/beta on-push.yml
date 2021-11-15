@@ -17,11 +17,7 @@ jobs:
       run: |
         cd NexusAPI
         npm install
-    - name: Testing Server
-      run: |
-        cd NexusAPI
-        npm install mocha chai chai-http supertest --save-dev
-        npm test
+        npm start
 
 
   DeployToHeroku:
