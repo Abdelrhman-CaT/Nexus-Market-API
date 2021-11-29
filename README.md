@@ -1,7 +1,7 @@
 <h2 align="center">&lt;NEXUS MARKETPLACE API&gt;</h2>
 
 <p align="center">
-   <img src="<pathToProjectLogo>" alt="Logo" height=95 width=95/>
+   <img src="logo.png" alt="Logo" height=95 width=95/>
 </p>
 
 <!-- TABLE OF CONTENTS -->
@@ -43,7 +43,7 @@
 2. Configure and run the backend (you need to have NPM installed on your machine)
 
 ```
-  cd <API Folder>
+  cd NexusAPI
   npm install
   npm start
 ```  
