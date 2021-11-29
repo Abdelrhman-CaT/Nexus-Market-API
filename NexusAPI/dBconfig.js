@@ -7,9 +7,10 @@ var Mongoose = require("mongoose");
 const config = require("./config");
 
 // For distributed db
-/*
+
 try{
     exports.d1 = Mongoose.createConnection(config.db1);
+    console.log("Connected to DB 1");
   }
   catch(err){
     console.log(err);
@@ -17,11 +18,12 @@ try{
   
   try{
     exports.d2 = Mongoose.createConnection(config.db2);
+    console.log("Connected to DB 2");
   }
   catch(err){
     console.log(err);
   }
-*/
+
 
 
 // For monolithic db
