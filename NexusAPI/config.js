@@ -5,5 +5,6 @@
 
 // Used to store configuration data
 module.exports = {
-    "offlineDbUrl": "mongodb://localhost:27017/x",
+    "db1": "mongodb+srv://cat:nexus@nexus1.l4mg9.mongodb.net/nexus?retryWrites=true&w=majority",
+    "db2": "mongodb+srv://cat:nexus@nexus2.y1bws.mongodb.net/nexus?retryWrites=true&w=majority"
 };
