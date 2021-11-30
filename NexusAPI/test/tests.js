@@ -14,49 +14,69 @@ chai.use(chaiHttp);
 const USER1 = require("../models/user1Schema");
 const USER2 = require("../models/user2Schema");
 
-describe("Users API Tests", ()=>{
-    describe("Sign up", ()=>{
-        it("should signup a new user", (done)=>{
-            request(server)
-            .post('/api/users/signup')
-            .send({
-                firstName: "test", 
-                lastName: "test", 
-                userName: "testUsername",
-                password: "1234",
-                email: "sdsds@wsesed.com",
-                storeName: "testStoreName"
-            })
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("success", true);
-                res.body.should.have.property("status", "user registered successfully");
-                done();
-            });
-        });
+let token;
 
-        it("should log in a registered user", (done)=>{
-            request(server)
-            .get('/api/users/login')
-            .send({
-                username: "testUsername",
-                password: "1234"
-            })
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("success", true);
-                res.body.should.have.property("status", "user login successfully");
-                res.body.should.have.property("token");
-                
-                // Removing data used in the test
-                USER1.findOneAndRemove({username: "testUsername"}).then(()=>{
-                    USER2.findOneAndRemove({storeName: "testStoreName"}).then(()=>{
-                        done();
-                    });
+describe("Users API Tests", ()=>{
+    it("should signup a new user", (done)=>{
+        request(server)
+        .post('/api/users/signup')
+        .send({
+            firstName: "test", 
+            lastName: "test", 
+            username: "testUsername",
+            password: "1234",
+            email: "sdsds@wsesed.com",
+            storeName: "testStoreName"
+        })
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "user registered successfully");
+            done();
+        });
+    });
+
+    it("should log in a registered user", (done)=>{
+        request(server)
+        .get('/api/users/login')
+        .send({
+            username: "testUsername",
+            password: "1234"
+        })
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "user login successfully");
+            res.body.should.have.property("token");
+            token = res.body.token;
+            console.log(token);
+            done();
+        });
+    });
+
+    it("should show the user his/her info", (done)=>{
+        request(server)
+        .get('/api/users/profile')
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("user");
+            res.body.user.should.be.a("object");
+            res.body.user.should.have.property("id");
+            res.body.user.should.have.property("firstName");
+            res.body.user.should.have.property("lastName");
+            res.body.user.should.have.property("balance");
+            
+            // Removing data used in the test
+            USER1.findOneAndRemove({username: "testUsername"}).then(()=>{
+                USER2.findOneAndRemove({storeName: "testStoreName"}).then(()=>{
+                    done();
                 });
             });
         });
-    }); 
+    });
 });

@@ -39,3 +39,36 @@ exports.jwtPassport = passport.use(
         });
     })
 );
+
+
+exports.verifyUser = (req, res, next)=>{
+    passport.authenticate("jwt", { session: false }, (err, user, info) => {
+        if (err) {
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        } 
+        else if (!user) {
+            res.statusCode = 401;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "invalid token" });
+        } else {
+            // establish a session
+            req.logIn(user, (err) => {
+                if (err) {
+                    res.statusCode = 401;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({success: false, status: "token verification failed",
+                        err: {
+                                name: "session error",
+                                message: "Could not establish a session"
+                            },
+                    });
+                } 
+                else {
+                    return next();
+                }
+            });
+        }
+    })(req, res, next);
+}

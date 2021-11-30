@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha --exit --slow 5000 --timeout 10000"
+    "test": "mocha --exit --slow 15000 --timeout 30000"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
