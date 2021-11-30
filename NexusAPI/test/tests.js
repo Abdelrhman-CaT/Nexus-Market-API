@@ -11,15 +11,31 @@ chai.should();
 chai.use(chaiHttp);
 
 
-describe("Initial test", ()=>{
+const USER1 = require("../models/user1Schema");
+const USER2 = require("../models/user2Schema");
+
+describe("Users API Tests", ()=>{
     describe("Sign up", ()=>{
-        it("should show output", (done)=>{
+        it("should show signup a new user", (done = ()=>{
+            USER1.findOneAndRemove({username: "testUsername"}).then(()=>{
+                USER2.findOneAndRemove({storeName: "testStoreName"});
+            })
+        })=>{
             request(server)
-            .get('/users')
+            .post('/api/users/signup')
+            .send({
+                firstName: "test", 
+                lastName: "test", 
+                userName: "testUsername",
+                password: "1234",
+                email: "sdsds@wsesed.com",
+                storeName: "testStoreName"
+            })
             .end((err, res)=>{
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property("res", "respond with a resource");
+                res.body.should.have.property("success", true);
+                res.body.should.have.property("status", "user registered successfully");
                 done();
             });
         });

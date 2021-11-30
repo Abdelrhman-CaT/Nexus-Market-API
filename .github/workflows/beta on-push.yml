@@ -17,10 +17,7 @@ jobs:
       run: |
         cd NexusAPI
         npm install
-        npm start &
-        PID=$!
-        sleep 6
-        kill $PID
+        npm test
 
 
   DeployToHeroku:

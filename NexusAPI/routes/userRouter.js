@@ -30,7 +30,7 @@ userRouter.post('/signup', cors.corsWithOptions, function(req, res, next) {
       if (err) {
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: false, status: "Process Failed1", err: err });
+        res.json({ success: false, status: "process failed", err: err });
       } 
       else {
         user1
@@ -51,7 +51,7 @@ userRouter.post('/signup', cors.corsWithOptions, function(req, res, next) {
               res.setHeader("Content-Type", "application/json");
               res.json({
                 success: false,
-                status: "Process Failed2",
+                status: "process failed",
                 err: err,
             });
             })            
@@ -61,7 +61,7 @@ userRouter.post('/signup', cors.corsWithOptions, function(req, res, next) {
             res.setHeader("Content-Type", "application/json");
             res.json({
               success: false,
-              status: "Process Failed3",
+              status: "process failed",
               err: err,
             });
           });
