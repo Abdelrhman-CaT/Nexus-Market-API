@@ -9,6 +9,14 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+
+// Importing important packages
+var passport = require("passport");
+var passportLocal = require("passport-local");
+var passportLocalMongoose = require("passport-local-mongoose");
+var passportJWT = require("passport-jwt");
+
+
 // Importing config file
 const config = require("./config");
 
@@ -19,8 +27,14 @@ const db = require("./dBconfig");
 
 
 // Importing Models
-
-
+const user1Schema = require("./models/user1Schema");
+const user2Schema = require("./models/user2Schema");
+const inventoryItem1Schema = require("./models/inventoryItem1Schema");
+const inventoryItem2Schema = require("./models/inventoryItem2Schema");
+const storeItem1Schema = require("./models/storeItem1Schema");
+const storeItem2Schema = require("./models/storeItem2Schema");
+const transaction1Schema = require("./models/transaction1Schema");
+const transaction2Schema = require("./models/transaction2Schema");
 
 
 // Importing Routers
@@ -48,8 +62,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 // Applying Routers
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api', indexRouter);
+app.use('/api/users', usersRouter);
 
 
 
