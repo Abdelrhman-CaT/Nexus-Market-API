@@ -17,9 +17,9 @@ var passportLocalMongoose = require("passport-local-mongoose");
 var passportJWT = require("passport-jwt");
 
 
-// Importing config file
+// Importing important files
 const config = require("./config");
-
+const authenticate = require("./authenticate");
 
 // Importing DB config
 const db = require("./dBconfig");
@@ -59,6 +59,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+// applying passport
+app.use(passport.initialize());
 
 
 // Applying Routers
