@@ -11,7 +11,6 @@ const dbs = require('../dBconfig'); // require only in case of using distributed
 
 
 var transactionSchema = new schema({
-    /*
     _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: transaction1Schema
@@ -24,10 +23,6 @@ var transactionSchema = new schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }
-    */
-   test: {
-       type: String
-   }
 }, 
 {
     timestamps: true
