@@ -43,7 +43,7 @@ describe("Users API Tests", ()=>{
 
     it("should log in a registered user", (done)=>{
         request(server)
-        .get('/api/users/login')
+        .post('/api/users/login')
         .send({
             username: "npmTestingUserName",
             password: "1234"
@@ -86,7 +86,7 @@ describe("Users API Tests", ()=>{
 
     it("should show all users if the request sender is an admin", (done)=>{
         request(server)
-        .get('/api/users/login')
+        .post('/api/users/login')
         .send({username: "ziad", password: "adminpassword"})
         .end((err, res)=>{
             token = res.body.token;
