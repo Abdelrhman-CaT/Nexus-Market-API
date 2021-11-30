@@ -151,31 +151,24 @@ userRouter.get("/", authenticate.verifyUser, authenticate.verifyAdmin, (req, res
 Increase balance
 ------------------
 */
-userRouter.put("/wallet/deposit", authenticate.verifyUser, functions.checkForRequiredFields("cardNum", "amount", "cvv"), (req, res, next)=>{
-    if(!(typeof(req.body.amount == "number") && req.body.amount >= 0)){
-        res.statusCode = 400;
+userRouter.put("/wallet/deposit", authenticate.verifyUser, functions.checkForRequiredFields("cardNum", "amount", "cvv"), functions.checkNumbersValidity("amount") ,(req, res, next)=>{
+  USER2.findById(req.user._id).then((user)=>{
+    user.balance += req.body.amount;
+    user.save().then((user)=>{
+        res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
-        res.json({success: false, status: "invalid amount"});
-    }
-    else{
-        USER2.findById(req.user._id).then((user)=>{
-          user.balance += req.body.amount;
-          user.save().then((user)=>{
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json({success: true, status: "balance added successfully"});
-          })
-          .catch((err)=>{
-              res.statusCode = 500;
-              res.setHeader("Content-Type", "application/json");
-              res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-          });
-      }).catch((err)=>{
+        res.json({success: true, status: "balance added successfully"});
+    })
+    .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
         res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-      });
-    }
+    });
+}).catch((err)=>{
+  res.statusCode = 500;
+  res.setHeader("Content-Type", "application/json");
+  res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+});
 });
 
 
@@ -185,31 +178,24 @@ decrease balance
 ------------------
 */
 userRouter.put("/wallet/withdraw", authenticate.verifyUser, functions.checkForRequiredFields("cardNum", "amount", "cvv"),
-(req, res, next)=>{
-  if(!(typeof(req.body.amount == "number") && req.body.amount >= 0)){
-    res.statusCode = 400;
-    res.setHeader("Content-Type", "application/json");
-    res.json({success: false, status: "invalid amount"});
-}
-else{
-    USER2.findById(req.user._id).then((user)=>{
-      user.balance -= req.body.amount;
-      user.save().then((user)=>{
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json({success: true, status: "balance removed successfully"});
-      })
-      .catch((err)=>{
-          res.statusCode = 500;
-          res.setHeader("Content-Type", "application/json");
-          res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-      });
-  }).catch((err)=>{
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "application/json");
-    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-  });
-}
+functions.checkNumbersValidity("amount"), (req, res, next)=>{
+  USER2.findById(req.user._id).then((user)=>{
+    user.balance -= req.body.amount;
+    user.save().then((user)=>{
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: true, status: "balance removed successfully"});
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+}).catch((err)=>{
+  res.statusCode = 500;
+  res.setHeader("Content-Type", "application/json");
+  res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+});
 });
 
 

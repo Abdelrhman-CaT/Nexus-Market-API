@@ -51,6 +51,23 @@ exports.checkUniqueness = (collection, keyDb, keyReq)=>{
 }
 
 
+exports.checkNumbersValidity = (...fields)=>{
+    return (req, res, next)=>{
+        let mark = true;
+        for(field of fields){
+            if(!(typeof(req.body[field] == "number") && req.body[field] >= 0)){
+                res.statusCode = 400;
+                res.setHeader("Content-Type", "application/json");
+                res.json({success: false, status: `invalid ${field}`});
+                mark = false;
+                break;
+            }
+        }
+        if(mark){
+            return next();
+        }
+    }
+}
 
 
 exports.distribute = (collection, req, res, ...fields) => {
