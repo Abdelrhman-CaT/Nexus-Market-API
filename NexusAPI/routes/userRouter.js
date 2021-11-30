@@ -47,7 +47,7 @@ userRouter.post('/signup', cors.corsWithOptions, functions.checkForRequiredField
 User Login
 ----------------
 */
-userRouter.get("/login", cors.corsWithOptions, functions.checkForRequiredFields("username", "password"), (req, res, next)=>{
+userRouter.post("/login", cors.corsWithOptions, functions.checkForRequiredFields("username", "password"), (req, res, next)=>{
   passport.authenticate("local", (err, user, info) => {
     if (err) {
       // server error
