@@ -30,6 +30,29 @@ exports.checkForRequiredFields = (...fields)=>{
 }
 
 
+exports.checkUniqueness = (collection, keyDb, keyReq)=>{
+    return (req, res, next)=>{
+        let query = {};
+        query[keyDb] = req.body[keyReq];
+        collection.find(query).then((result)=>{
+            if(result.length == 0){
+                return next();
+            }
+            else{
+                res.statusCode = 403;
+                res.setHeader("Content-Type", "application/json");
+                res.json({
+                    success: false,
+                    status: `${keyReq} already exists` 
+                });
+            }
+        })
+    }
+}
+
+
+
+
 exports.distribute = (collection, req, res, ...fields) => {
     // CREATING USERS
     if(collection == "USER"){

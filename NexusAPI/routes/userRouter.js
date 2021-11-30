@@ -25,7 +25,7 @@ Sign Up a user
 ----------------
 */
 userRouter.post('/signup', cors.corsWithOptions, functions.checkForRequiredFields("firstName", "lastName", 
-"username", "password", "storeName", "email") ,(req, res, next)=>{
+"username", "password", "storeName", "email"), functions.checkUniqueness(USER2, "storeName", "storeName") ,(req, res, next)=>{
   // check for email validity
   let email_regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if(!(req.body.email.match(email_regex))){
@@ -113,6 +113,38 @@ userRouter.get("/profile", authenticate.verifyUser, (req, res, next)=>{
       res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
+
+
+
+/* 
+User Profile
+----------------
+*/
+userRouter.get("/", authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next)=>{
+    USER2.find({}).populate("_id").then((users)=>{
+        output = [];
+        for(user of users){
+          temp = {};
+          temp.id = user._id._id;
+          temp.firstName = user._id.firstName;
+          temp.storeName = user.storeName;
+          temp.lastName = user._id.lastName;
+          temp.email = user._id.email;
+          temp.balance = user.balance;
+          temp.phoneNumber = user._id.phoneNumber;
+          output.push(temp);
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: true, users: output});
+    })
+    .catch((err)=>{
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
+
 
 
 module.exports = userRouter;
