@@ -1,79 +1,46 @@
 /*
     Author: Abdelrahman Hany
-    Created on: 8-Nov-2021
+    Created on: 30-Nov-2021
 */
 
 var express = require('express');
 var userRouter = express.Router();
 var cors = require("../cors");
 var mongoose = require("mongoose");
+
 const USER1 = require("../models/user1Schema");
 const USER2 = require("../models/user2Schema");
 
+const functions = require("../functions");
 
 userRouter.options("*", cors.corsWithOptions, (req, res, next) => {
   res.sendStatus(200);
 });
 
 
-userRouter.post('/signup', cors.corsWithOptions, function(req, res, next) {
-  USER1.register(
-    new USER1({
-      username: req.body.userName,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email : req.body.email,
-      phoneNumber: (req.body.phoneNumber)?req.body.phoneNumber : ""
-    }),
-    req.body.password,
-    (err, user1) => {
-      if (err) {
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: false, status: "process failed", err: err });
-      } 
-      else {
-        user1
-          .save()
-          .then((user1) => {
-            user2 = new USER2({
-              _id: mongoose.Types.ObjectId(user1._id),
-              storeName: req.body.storeName
-            });
-            user2.save()
-            .then((user2)=>{
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json({ success: true, status: "user registered successfully" });
-            })
-            .catch((err)=>{
-              res.statusCode = 500;
-              res.setHeader("Content-Type", "application/json");
-              res.json({
-                success: false,
-                status: "process failed",
-                err: err,
-            });
-            })            
-          })
-          .catch((err) => {
-            res.statusCode = 500;
-            res.setHeader("Content-Type", "application/json");
-            res.json({
-              success: false,
-              status: "process failed",
-              err: err,
-            });
-          });
-      }
-    }
-  );
+/* 
+Sign Up a user
+----------------
+*/
+userRouter.post('/signup', cors.corsWithOptions, functions.checkForRequiredFields("firstName", "lastName", 
+"userName", "password", "storeName", "email") ,(req, res, next)=>{
+  // check for email validity
+  let email_regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if(!(req.body.email.match(email_regex))){
+      res.statusCode = 400;
+      res.setHeader("Content-Type", "application/json");
+      res.json({
+        success: false,
+			  status: "invalid email" 
+      });
+  }
+  else{
+    functions.distribute("USER", req, res);
+  }
 });
 
-userRouter.get("/", cors.corsWithOptions, (req,res,next)=>{
-  USER2.find({}).populate("_id").then((users)=>{
-    res.json(users);
-  })
-});
+
+
+
 
 module.exports = userRouter;

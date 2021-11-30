@@ -16,11 +16,7 @@ const USER2 = require("../models/user2Schema");
 
 describe("Users API Tests", ()=>{
     describe("Sign up", ()=>{
-        it("should show signup a new user", (done = ()=>{
-            USER1.findOneAndRemove({username: "testUsername"}).then(()=>{
-                USER2.findOneAndRemove({storeName: "testStoreName"});
-            })
-        })=>{
+        it("should show signup a new user", (done)=>{
             request(server)
             .post('/api/users/signup')
             .send({
@@ -36,8 +32,14 @@ describe("Users API Tests", ()=>{
                 res.body.should.be.a('object');
                 res.body.should.have.property("success", true);
                 res.body.should.have.property("status", "user registered successfully");
-                done();
+                
+                // Removing data used in the test
+                USER1.findOneAndRemove({username: "testUsername"}).then(()=>{
+                    USER2.findOneAndRemove({storeName: "testStoreName"}).then(()=>{
+                        done();
+                    });
+                });
             });
         });
-    })
+    }); 
 });
