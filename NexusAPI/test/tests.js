@@ -21,7 +21,7 @@ let token;
 let itemId;  // needs to be reassgined beginning from testing store api
 
 describe("Users API Tests", ()=>{
-    it("should signup a new user", (done)=>{
+    it("should sign me up", (done)=>{
         request(server)
         .post('/api/users/signup')
         .send({
@@ -41,7 +41,7 @@ describe("Users API Tests", ()=>{
         });
     });
 
-    it("should log in a registered user", (done)=>{
+    it("should log me in", (done)=>{
         request(server)
         .post('/api/users/login')
         .send({
@@ -59,7 +59,7 @@ describe("Users API Tests", ()=>{
         });
     });
 
-    it("should show the user his/her info", (done)=>{
+    it("should show me my info", (done)=>{
         request(server)
         .get('/api/users/profile')
         .set("Authorization", `bearer ${token}`)
@@ -84,7 +84,7 @@ describe("Users API Tests", ()=>{
     });
 
 
-    it("should show all users if the request sender is an admin", (done)=>{
+    it("should show me all users (I am an admin)", (done)=>{
         request(server)
         .post('/api/users/login')
         .send({username: "ziad", password: "adminpassword"})
@@ -105,7 +105,7 @@ describe("Users API Tests", ()=>{
     });
 
 
-    it("should increase the user's balance from his/her credit card", (done)=>{
+    it("should increase my balance from my credit card", (done)=>{
         request(server)
         .put("/api/users/wallet/deposit")
         .send({cardNum: "xx", cvv: "xx", amount: 40})
@@ -119,7 +119,7 @@ describe("Users API Tests", ()=>{
         }); 
     });
 
-    it("should remove the user's balance to add it to his/her credit card", (done)=>{
+    it("should remove my balance to add it to my credit card", (done)=>{
         request(server)
         .put("/api/users/wallet/withdraw")
         .send({cardNum: "xx", cvv: "xx", amount: 40})
@@ -136,8 +136,8 @@ describe("Users API Tests", ()=>{
 });
 
 
-describe("Inventory API tests", ()=>{
-    it("should add an item to the inventory of the registered user", (done)=>{
+describe("Inventory API Tests", ()=>{
+    it("should add an item to my inventory", (done)=>{
         request(server)
         .post("/api/myinventory")
         .set("Authorization", `bearer ${token}`)
@@ -161,7 +161,7 @@ describe("Inventory API tests", ()=>{
         });
     });
 
-    it("should get all items in the registered user's inventory", (done)=>{
+    it("should get all items in my inventory", (done)=>{
         request(server)
         .get("/api/myinventory")
         .set("Authorization", `bearer ${token}`)
@@ -182,7 +182,7 @@ describe("Inventory API tests", ()=>{
         });
     });
 
-    it("should get info about a specific item given its id in the registered user's inventory", (done)=>{
+    it("should get info about a specific item given its id in my inventory", (done)=>{
         request(server)
         .get(`/api/myinventory/${itemId}`)
         .set("Authorization", `bearer ${token}`)
@@ -202,7 +202,7 @@ describe("Inventory API tests", ()=>{
         });
     });
 
-    it("should edit the info of a specific item given its id in the registered user's inventory", (done)=>{
+    it("should edit the info of a specific item given its id in my inventory", (done)=>{
         request(server)
         .put(`/api/myinventory/${itemId}`)
         .set("Authorization", `bearer ${token}`)
@@ -217,7 +217,7 @@ describe("Inventory API tests", ()=>{
     });
 
 
-    it("should delete a specific item given its id from the registered user's inventory", (done)=>{
+    it("should delete a specific item given its id from my inventory", (done)=>{
         request(server)
         .delete(`/api/myinventory/${itemId}`)
         .set("Authorization", `bearer ${token}`)
@@ -231,4 +231,21 @@ describe("Inventory API tests", ()=>{
         });
     });
 
+});
+
+
+describe("Store API Tests", ()=>{
+    it("should get all items in my store", (done)=>{
+        request(server)
+        .get("/api/stores/mystore")
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("items");
+            res.body.items.should.be.a("array");
+            done();
+        });
+    });
 });

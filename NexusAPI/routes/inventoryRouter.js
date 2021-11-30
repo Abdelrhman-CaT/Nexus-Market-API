@@ -8,8 +8,6 @@ var mongoose = require("mongoose");
 var inventoryRouter = express.Router();
 
 
-var passport = require("passport");
-
 
 const INV1 = require("../models/inventoryItem1Schema");
 const INV2 = require("../models/inventoryItem2Schema");
