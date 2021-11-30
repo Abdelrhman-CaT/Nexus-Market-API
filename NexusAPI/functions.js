@@ -7,6 +7,9 @@ var mongoose = require("mongoose");
 
 const USER1 = require("./models/user1Schema");
 const USER2 = require("./models/user2Schema");
+const INV1 = require("./models/inventoryItem1Schema");
+const INV2 = require("./models/inventoryItem2Schema");
+
 
 exports.checkForRequiredFields = (...fields)=>{
     return (req, res, next)=>{
@@ -118,6 +121,36 @@ exports.distribute = (collection, req, res, ...fields) => {
               }
             }
         );
+    }
+    else if(collection == "INV"){
+        inv1 = new INV1({
+            name: req.body.name,
+            description: req.body.description,
+            imageLink: req.body.imageLink
+        });
+        inv1.save().then((inv1)=>{
+            inv2 = new INV2({
+                _id: mongoose.Types.ObjectId(inv1._id),
+                owner: mongoose.Types.ObjectId(req.user._id),
+                amount: req.body.amount,
+                price: req.body.price
+            });
+            inv2.save().then((inv2)=>{
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "item added successfully"});
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            });
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        })
     }
 
 

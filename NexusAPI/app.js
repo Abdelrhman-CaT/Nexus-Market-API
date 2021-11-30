@@ -38,8 +38,9 @@ const transaction2Schema = require("./models/transaction2Schema");
 
 
 // Importing Routers
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/userRouter');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/userRouter');
+const inventoryRouter = require('./routes/inventoryRouter');
 
 
 // Declaration Zone Ends Here
@@ -66,6 +67,7 @@ app.use(passport.initialize());
 // Applying Routers
 app.use('/api', indexRouter);
 app.use('/api/users', usersRouter);
+app.use("/api/myinventory", inventoryRouter);
 
 
 
