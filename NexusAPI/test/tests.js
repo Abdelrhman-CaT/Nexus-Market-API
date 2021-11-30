@@ -16,7 +16,7 @@ const USER2 = require("../models/user2Schema");
 
 describe("Users API Tests", ()=>{
     describe("Sign up", ()=>{
-        it("should show signup a new user", (done)=>{
+        it("should signup a new user", (done)=>{
             request(server)
             .post('/api/users/signup')
             .send({
@@ -32,6 +32,23 @@ describe("Users API Tests", ()=>{
                 res.body.should.be.a('object');
                 res.body.should.have.property("success", true);
                 res.body.should.have.property("status", "user registered successfully");
+                done();
+            });
+        });
+
+        it("should log in a registered user", (done)=>{
+            request(server)
+            .get('/api/users/login')
+            .send({
+                username: "testUsername",
+                password: "1234"
+            })
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property("success", true);
+                res.body.should.have.property("status", "user login successfully");
+                res.body.should.have.property("token");
                 
                 // Removing data used in the test
                 USER1.findOneAndRemove({username: "testUsername"}).then(()=>{

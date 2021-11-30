@@ -30,7 +30,7 @@ exports.checkForRequiredFields = (...fields)=>{
 }
 
 
-exports.distribute = (collection, req, res) => {
+exports.distribute = (collection, req, res, ...fields) => {
     // CREATING USERS
     if(collection == "USER"){
         // creating a document for the user in USER1
