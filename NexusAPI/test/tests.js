@@ -182,8 +182,6 @@ describe("Inventory API tests", ()=>{
         });
     });
 
-
-
     it("should get info about a specific item given its id in the registered user's inventory", (done)=>{
         request(server)
         .get(`/api/myinventory/${itemId}`)
@@ -200,7 +198,21 @@ describe("Inventory API tests", ()=>{
             res.body.item.should.have.property("price");
             res.body.item.should.have.property("imageLink");
             res.body.item.should.have.property("description");
+            done();
+        });
+    });
 
+    it("should edit the info of a specific item given its id in the registered user's inventory", (done)=>{
+        request(server)
+        .put(`/api/myinventory/${itemId}`)
+        .set("Authorization", `bearer ${token}`)
+        .send({name: "npmTestingItemMod"})
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "item edited successfully");
+            
             INV1.findByIdAndRemove(itemId).then(()=>{
                 INV2.findByIdAndRemove(itemId).then(()=>{
                     done();
@@ -208,6 +220,5 @@ describe("Inventory API tests", ()=>{
             });
         });
     });
-
 
 });
