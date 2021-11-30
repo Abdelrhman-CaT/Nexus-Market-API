@@ -58,7 +58,7 @@ exports.checkNumbersValidity = (...fields)=>{
     return (req, res, next)=>{
         let mark = true;
         for(field of fields){
-            if(!(typeof(req.body[field] == "number") && req.body[field] >= 0)){
+            if(!((typeof(req.body[field] == "number") && req.body[field] >= 0) || req.body[field] == null)){
                 res.statusCode = 400;
                 res.setHeader("Content-Type", "application/json");
                 res.json({success: false, status: `invalid ${field}`});
