@@ -51,7 +51,6 @@ describe("Users API Tests", ()=>{
             res.body.should.have.property("status", "user login successfully");
             res.body.should.have.property("token");
             token = res.body.token;
-            console.log(token);
             done();
         });
     });
