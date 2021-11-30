@@ -79,4 +79,25 @@ describe("Users API Tests", ()=>{
             });
         });
     });
+
+
+    it("should show all users if the request sender is an admin", (done)=>{
+        request(server)
+        .get('/api/users/login')
+        .send({username: "ziad", password: "adminpassword"})
+        .end((err, res)=>{
+            token = res.body.token;
+            request(server)
+            .get("/api/users")
+            .set("Authorization", `bearer ${token}`)
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property("success", true);
+                res.body.should.have.property("users");
+                res.body.users.should.be.a("array");
+                done();
+            });
+        });
+    });
 });

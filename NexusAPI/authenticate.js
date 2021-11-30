@@ -72,3 +72,15 @@ exports.verifyUser = (req, res, next)=>{
         }
     })(req, res, next);
 }
+
+
+exports.verifyAdmin = (req, res, next)=>{
+    if(req.user.admin == true){
+        return next();
+    }
+    else{
+        res.statusCode = 403;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: false, status: "you are not an admin"});
+    }
+}
