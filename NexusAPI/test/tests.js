@@ -102,7 +102,7 @@ describe("Users API Tests", ()=>{
     });
 
 
-    it("should increase the users balance from his credit card", (done)=>{
+    it("should increase the user's balance from his/her credit card", (done)=>{
         request(server)
         .get('/api/users/login')
         .send({username: "ziad", password: "adminpassword"})
@@ -121,4 +121,25 @@ describe("Users API Tests", ()=>{
             });
         });
     });
+
+    it("should remove the user's balance to add it to his/her credit card", (done)=>{
+        request(server)
+        .get('/api/users/login')
+        .send({username: "ziad", password: "adminpassword"})
+        .end((err, res)=>{
+            token = res.body.token;
+            request(server)
+            .put("/api/users/wallet/withdraw")
+            .send({cardNum: "xx", cvv: "xx", amount: 40})
+            .set("Authorization", `bearer ${token}`)
+            .end((err, res)=>{
+                res.should.have.status(200);
+                res.body.should.be.a('object');
+                res.body.should.have.property("success", true);
+                res.body.should.have.property("status", "balance removed successfully");
+                done();
+            });
+        });
+    });
+
 });
