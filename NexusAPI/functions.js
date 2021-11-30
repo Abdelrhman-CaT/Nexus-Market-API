@@ -36,7 +36,7 @@ exports.distribute = (collection, req, res, ...fields) => {
         // creating a document for the user in USER1
         USER1.register(
             new USER1({
-              username: req.body.userName,
+              username: req.body.username,
               firstName: req.body.firstName,
               lastName: req.body.lastName,
               email : req.body.email,

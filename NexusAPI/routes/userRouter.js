@@ -8,6 +8,9 @@ var userRouter = express.Router();
 
 var passport = require("passport");
 
+const USER1 = require("../models/user1Schema");
+const USER2 = require("../models/user2Schema");
+
 var cors = require("../cors");
 const functions = require("../functions");
 const authenticate = require("../authenticate");
@@ -22,7 +25,7 @@ Sign Up a user
 ----------------
 */
 userRouter.post('/signup', cors.corsWithOptions, functions.checkForRequiredFields("firstName", "lastName", 
-"userName", "password", "storeName", "email") ,(req, res, next)=>{
+"username", "password", "storeName", "email") ,(req, res, next)=>{
   // check for email validity
   let email_regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if(!(req.body.email.match(email_regex))){
@@ -59,14 +62,12 @@ userRouter.get("/login", cors.corsWithOptions, functions.checkForRequiredFields(
       res.json({ success: false, status: "login unsuccessful", err: info });
     }
     else{
+      // establish a session
       req.logIn(user, (err) => {
-        // establish a session
         if (err) {
           res.statusCode = 401;
           res.setHeader("Content-Type", "application/json");
-          res.json({
-            success: false,
-            status: "login unsuccessful",
+          res.json({success: false, status: "login unsuccessful",
             err: {
               name: "session error",
               message: "Could not establish a login session"
@@ -88,6 +89,30 @@ userRouter.get("/login", cors.corsWithOptions, functions.checkForRequiredFields(
   })(req, res, next);
 });
 
+
+
+/* 
+User Profile
+----------------
+*/
+userRouter.get("/profile", authenticate.verifyUser, (req, res, next)=>{
+    USER2.findById(req.user._id).populate("_id").then((user)=>{
+        output = {};
+        output.id = user._id._id;
+        output.firstName = user._id.firstName;
+        output.lastName = user._id.lastName;
+        output.balance = user.balance;
+        
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: true, user: output});
+    })
+    .catch((err)=>{
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
 
 
 module.exports = userRouter;
