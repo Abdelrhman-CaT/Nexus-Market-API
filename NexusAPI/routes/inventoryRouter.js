@@ -198,6 +198,42 @@ inventoryRouter.route("/:itemId")
     });
 })
 
+// remove an item from my inventory
+.delete(authenticate.verifyUser, (req, res, next)=>{
+    INV2.findOne({_id: mongoose.Types.ObjectId(req.params.itemId), owner: mongoose.Types.ObjectId(req.user._id)})
+    .then((item)=>{
+        if(item == null){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({success: false, status: "item doesn't exist in your inventory"});
+        }
+        else{
+            INV1.findByIdAndRemove(req.params.itemId).then(()=>{
+                item.remove().then(()=>{
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({success: true, status: "item deleted successfully"});
+                })
+                .catch((err)=>{
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                });
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            });
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
+
 
 
 module.exports = inventoryRouter;

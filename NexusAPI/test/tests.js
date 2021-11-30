@@ -18,7 +18,7 @@ const INV1 = require("../models/inventoryItem1Schema");
 const INV2 = require("../models/inventoryItem2Schema");
 
 let token;
-let itemId;
+let itemId;  // needs to be reassgined beginning from testing store api
 
 describe("Users API Tests", ()=>{
     it("should signup a new user", (done)=>{
@@ -212,12 +212,22 @@ describe("Inventory API tests", ()=>{
             res.body.should.be.a("object");
             res.body.should.have.property("success", true);
             res.body.should.have.property("status", "item edited successfully");
-            
-            INV1.findByIdAndRemove(itemId).then(()=>{
-                INV2.findByIdAndRemove(itemId).then(()=>{
-                    done();
-                });
-            });
+            done();
+        });
+    });
+
+
+    it("should delete a specific item given its id from the registered user's inventory", (done)=>{
+        request(server)
+        .delete(`/api/myinventory/${itemId}`)
+        .set("Authorization", `bearer ${token}`)
+        .send({name: "npmTestingItemMod"})
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "item deleted successfully");
+            done();
         });
     });
 
