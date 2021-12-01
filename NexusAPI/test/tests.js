@@ -477,30 +477,8 @@ describe("Store API Tests", ()=>{
             res.body.items[0].should.have.property("description");
             res.body.items[0].should.have.property("storeId");
             res.body.items[0].should.have.property("storeName");
-            //--------------------------------------------------------------
-            INV2.findByIdAndRemove(itemId).then(()=>{
-                INV1.findByIdAndRemove(itemId).then(()=>{
-                    STR2.findByIdAndRemove(strItemId).then(()=>{
-                        STR1.findByIdAndRemove(strItemId).then(()=>{
-                            // Removing data used in the test
-                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
-                                            INV2.findByIdAndRemove(itemId2).then(()=>{
-                                                INV1.findByIdAndRemove(itemId2).then(()=>{
-                                                    done();
-                                                });
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-            //----------------------------------------------------------------------
+            
+            done();
         });
     });
 
@@ -546,7 +524,30 @@ describe("Transactions API Tests", ()=>{
             res.body.should.have.property("success", true);
             res.body.should.have.property("transactions");
             res.body.transactions.should.be.a("array");
-            done();
+            //--------------------------------------------------------------
+            INV2.findByIdAndRemove(itemId).then(()=>{
+                INV1.findByIdAndRemove(itemId).then(()=>{
+                    STR2.findByIdAndRemove(strItemId).then(()=>{
+                        STR1.findByIdAndRemove(strItemId).then(()=>{
+                            // Removing data used in the test
+                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
+                                            INV2.findByIdAndRemove(itemId2).then(()=>{
+                                                INV1.findByIdAndRemove(itemId2).then(()=>{
+                                                    done();
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+            //----------------------------------------------------------------------
         });
     });
 });
