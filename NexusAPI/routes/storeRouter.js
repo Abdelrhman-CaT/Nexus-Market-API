@@ -346,7 +346,23 @@ storeRouter.route("/mystore/:itemId")
 // get all items from all stores
 storeRouter.get("/", authenticate.verifyUser, (req, res, next)=>{
     STR2.find({}).populate("_id").populate("owner").populate("item").then((items)=>{
-
+        let output = [];
+        for(let item of items){
+            let temp = {
+                id: item._id._id,
+                name: item.item.name,
+                price: item._id.sellPrice,
+                amount: item._id.sellAmount,
+                imageLink: item.item.imageLink,
+                description: item.item.description,
+                storeId: item.owner._id,
+                storeName: item.owner.storeName
+            };
+            output.push(temp);
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: true, items: output});
     })
     .catch((err)=>{
         res.statusCode = 500;

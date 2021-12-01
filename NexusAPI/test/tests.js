@@ -398,34 +398,58 @@ describe("Store API Tests", ()=>{
                             res.body.should.be.a("object");
                             res.body.should.have.property("success", true);
                             res.body.should.have.property("status", "item deleted successfully");
-                            //--------------------------------------------------------------
-                            INV2.findByIdAndRemove(itemId).then(()=>{
-                                INV1.findByIdAndRemove(itemId).then(()=>{
-                                    STR2.findByIdAndRemove(strItemId).then(()=>{
-                                        STR1.findByIdAndRemove(strItemId).then(()=>{
-                                            // Removing data used in the test
-                                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
-                                                            INV2.findByIdAndRemove(itemId2).then(()=>{
-                                                                INV1.findByIdAndRemove(itemId2).then(()=>{
-                                                                    done();
-                                                                });
-                                                            });
-                                                        });
-                                                    });
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+
+    it("should display all items from all stores", (done)=>{
+        request(server)
+        .get("/api/stores")
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("items");
+            res.body.items.should.be.a("array");
+            res.body.items[0].should.be.a("object");
+            res.body.items[0].should.have.property("id");
+            res.body.items[0].should.have.property("name");
+            res.body.items[0].should.have.property("price");
+            res.body.items[0].should.have.property("amount");
+            res.body.items[0].should.have.property("imageLink");
+            res.body.items[0].should.have.property("description");
+            res.body.items[0].should.have.property("storeName");
+            res.body.items[0].should.have.property("storeId");
+            //--------------------------------------------------------------
+            INV2.findByIdAndRemove(itemId).then(()=>{
+                INV1.findByIdAndRemove(itemId).then(()=>{
+                    STR2.findByIdAndRemove(strItemId).then(()=>{
+                        STR1.findByIdAndRemove(strItemId).then(()=>{
+                            // Removing data used in the test
+                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
+                                            INV2.findByIdAndRemove(itemId2).then(()=>{
+                                                INV1.findByIdAndRemove(itemId2).then(()=>{
+                                                    done();
                                                 });
                                             });
                                         });
                                     });
                                 });
                             });
-                            //----------------------------------------------------------------------
                         });
                     });
                 });
             });
+            //----------------------------------------------------------------------
         });
     });
 
