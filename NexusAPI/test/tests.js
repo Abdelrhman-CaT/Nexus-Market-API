@@ -288,6 +288,8 @@ describe("Store API Tests", ()=>{
             res.body.items[0].should.have.property("imageLink");
             res.body.items[0].should.have.property("description");
             res.body.items[0].should.have.property("state");
+            res.body.items[0].should.have.property("storeName");
+            res.body.items[0].should.have.property("storeId");
             done();
         });
     });
@@ -310,6 +312,8 @@ describe("Store API Tests", ()=>{
             res.body.item.should.have.property("imageLink");
             res.body.item.should.have.property("description");
             res.body.item.should.have.property("state");
+            res.body.item.should.have.property("storeName");
+            res.body.item.should.have.property("storeId");
             
             done();
         });
