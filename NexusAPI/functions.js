@@ -55,8 +55,8 @@ exports.checkUniqueness = (collection, keyDb, keyReq)=>{
     }
 }
 
-
-exports.checkAvailabilityIdParam = (collection, param)=>{
+/*
+exports.checkPersonalAvailabilityIdParam = (collection, param)=>{
     return (req, res, next)=>{
         collection.findOne({_id: mongoose.Types.ObjectId(req.params[param]), owner: req.user._id}).then((result)=>{
             if(result == null){
@@ -77,13 +77,35 @@ exports.checkAvailabilityIdParam = (collection, param)=>{
         });
     }
 }
-
+*/
+/*
+exports.checkGeneralAvailabilityIdParam = (collection, param)=>{
+    return (req, res, next)=>{
+        collection.findOne({_id: mongoose.Types.ObjectId(req.params[param])}).then((item)=>{
+            if(item == null){
+                let name = param.substring(0, param.length-2);
+                res.statusCode = 404;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: `${name} doesn't exist`});
+            }
+            else{
+                return next();
+            }
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        });
+    }
+}
+*/
 
 exports.checkNumbersValidity = (...fields)=>{
     return (req, res, next)=>{
         let mark = true;
         for(field of fields){
-            if(!((typeof(req.body[field] == "number") && req.body[field] >= 0) || req.body[field] == null)){
+            if(!((typeof(req.body[field] == "number") && req.body[field] > 0) || req.body[field] == null)){
                 res.statusCode = 400;
                 res.setHeader("Content-Type", "application/json");
                 res.json({success: false, status: `invalid ${field}`});
