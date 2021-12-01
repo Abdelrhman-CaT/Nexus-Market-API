@@ -121,7 +121,7 @@ functions.checkNumbersValidity("amount", "price"),
                     if(result.amount < req.body.amount){
                         res.statusCode = 400;
                         res.setHeader("Content-Type", "application/json");
-                        res.json({ success: false, status: "the input amount is larger than the amount presented in the inventory for that item"});
+                        res.json({ success: false, status: "amount is larger than the amount presented in the inventory for that item"});
                     }
                     else{
                         functions.distribute("STR", req, res);
@@ -180,6 +180,11 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
         res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
+
+
+
+// edit an item in my store (can edit owned items only)
+storeRouter.put("/mystore/:itemId", authenticate.verifyUser, );
 
 
 
