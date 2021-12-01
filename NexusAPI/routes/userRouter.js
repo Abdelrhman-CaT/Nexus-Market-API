@@ -180,17 +180,24 @@ decrease balance
 userRouter.put("/wallet/withdraw", authenticate.verifyUser, functions.checkForRequiredFields("cardNum", "amount", "cvv"),
 functions.checkNumbersValidity("amount"), (req, res, next)=>{
   USER2.findById(req.user._id).then((user)=>{
-    user.balance -= req.body.amount;
-    user.save().then((user)=>{
+    if(user.balance < req.body.amout){
+      res.statusCode = 403;
+      res.setHeader("Content-Type", "application/json");
+      res.json({success: false, status: "low balance"});
+    }
+    else{
+        user.balance -= req.body.amount;
+        user.save().then((user)=>{
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json({success: true, status: "balance removed successfully"});
-    })
-    .catch((err)=>{
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-    });
+        })
+        .catch((err)=>{
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json");
+          res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        });
+    }
 }).catch((err)=>{
   res.statusCode = 500;
   res.setHeader("Content-Type", "application/json");

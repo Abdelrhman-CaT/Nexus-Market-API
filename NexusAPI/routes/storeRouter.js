@@ -13,6 +13,8 @@ const INV1 = require("../models/inventoryItem1Schema");
 const INV2 = require("../models/inventoryItem2Schema");
 const STR1 = require("../models/storeItem1Schema");
 const STR2 = require("../models/storeItem2Schema");
+const USER1 = require("../models/user1Schema");
+const USER2 = require("../models/user2Schema");
 
 
 var cors = require("../cors");
@@ -453,10 +455,53 @@ storeRouter.get("/search/items", authenticate.verifyUser, functions.checkQuery("
 
 
 // purchase an item
-storeRouter.put("/purchase/:itemId", functions.checkForRequiredFields("amount"),
+storeRouter.put("/purchase/:itemId", authenticate.verifyUser, functions.checkForRequiredFields("amount"),
 functions.checkNumbersValidity("amount"), (req, res, next)=>{
-    STR2.findById(req.params.itemId).then((item)=>{
-        res.json({s:true});
+    STR2.findById(req.params.itemId).populate("_id").populate("item").then((item)=>{
+        if(!item){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "item doesn't exist"});
+        }
+        else{
+            if(item.owner.equals(req.user._id)){
+                res.statusCode = 403;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "you already own this item"});
+            }
+            else{
+                if(item._id.sellAmount < req.body.amount){
+                    res.statusCode = 400;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "amount is larger than the available"});
+                }
+                else{
+                    USER2.findById(req.user._id).then((buyer)=>{
+                        if(item._id.sellPrice * req.body.amount > buyer.balance){
+                            res.statusCode = 403;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "you can’t buy this item"});
+                        }
+                        else{
+                            USER2.findById(item.owner).then((seller)=>{
+                                // purchasing
+                                res.json({s:true});
+                            })
+                            .catch((err)=>{
+                                res.statusCode = 500;
+                                res.setHeader("Content-Type", "application/json");
+                                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                            });
+                        }
+                    })
+                    .catch((err)=>{
+                        res.statusCode = 500;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                    });
+                }
+            }
+        }
     })
     .catch((err)=>{
         res.statusCode = 500;
