@@ -18,7 +18,6 @@ const STR2 = require("../models/storeItem2Schema");
 var cors = require("../cors");
 const functions = require("../functions");
 const authenticate = require("../authenticate");
-const { search } = require('superagent');
 
 
 storeRouter.options("*", cors.corsWithOptions, (req, res, next) => {
@@ -454,11 +453,16 @@ storeRouter.get("/search/items", authenticate.verifyUser, functions.checkQuery("
 
 
 // purchase an item
-storeRouter.put("/purchase/:itemId", authenticate.verifyUser, functions.checkForRequiredFields("amount"),
+storeRouter.put("/purchase/:itemId", functions.checkForRequiredFields("amount"),
 functions.checkNumbersValidity("amount"), (req, res, next)=>{
     STR2.findById(req.params.itemId).then((item)=>{
-        
+        res.json({s:true});
     })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
 });
 
 
