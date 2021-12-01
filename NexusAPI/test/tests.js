@@ -22,6 +22,7 @@ const STR2 = require("../models/storeItem2Schema");
 let token;
 let itemId;  // (inventoryItemId) needs to be reassgined beginning from testing store api
 let strItemId;
+let storeId;
 let token2;
 let itemId2;
 let strItemId2;
@@ -314,7 +315,7 @@ describe("Store API Tests", ()=>{
             res.body.item.should.have.property("state");
             res.body.item.should.have.property("storeName");
             res.body.item.should.have.property("storeId");
-            
+            storeId = res.body.item.storeId;
             done();
         });
     });
@@ -426,6 +427,32 @@ describe("Store API Tests", ()=>{
             res.body.items[0].should.have.property("description");
             res.body.items[0].should.have.property("storeName");
             res.body.items[0].should.have.property("storeId");
+            
+            done();
+        });
+    });
+
+
+    it("should get all items in a store given its id", (done)=>{
+        request(server)
+        .get(`/api/stores/${storeId}`)
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("items");
+            res.body.items.should.be.a("array");
+            res.body.items[0].should.be.a("object");
+            res.body.items[0].should.have.property("id");
+            res.body.items[0].should.have.property("name");
+            res.body.items[0].should.have.property("price");
+            res.body.items[0].should.have.property("amount");
+            res.body.items[0].should.have.property("imageLink");
+            res.body.items[0].should.have.property("description");
+            res.body.items[0].should.have.property("storeName");
+            res.body.items[0].should.have.property("storeId");
+            res.body.items[0].should.have.property("state");
             //--------------------------------------------------------------
             INV2.findByIdAndRemove(itemId).then(()=>{
                 INV1.findByIdAndRemove(itemId).then(()=>{
