@@ -530,10 +530,10 @@ describe("Transactions API Tests", ()=>{
                     STR2.findByIdAndRemove(strItemId).then(()=>{
                         STR1.findByIdAndRemove(strItemId).then(()=>{
                             // Removing data used in the test
-                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
+                            USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                    USER1.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                        USER2.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
                                             INV2.findByIdAndRemove(itemId2).then(()=>{
                                                 INV1.findByIdAndRemove(itemId2).then(()=>{
                                                     done();
