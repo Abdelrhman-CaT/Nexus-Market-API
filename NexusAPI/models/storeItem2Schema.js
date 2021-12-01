@@ -27,7 +27,7 @@ var storeItemSchema = new schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: inventoryItem1Schema
     },
-    seller: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },

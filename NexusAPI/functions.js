@@ -9,6 +9,8 @@ const USER1 = require("./models/user1Schema");
 const USER2 = require("./models/user2Schema");
 const INV1 = require("./models/inventoryItem1Schema");
 const INV2 = require("./models/inventoryItem2Schema");
+const STR1 = require("./models/storeItem1Schema");
+const STR2 = require("./models/storeItem2Schema");
 
 
 exports.checkForRequiredFields = (...fields)=>{
@@ -50,6 +52,29 @@ exports.checkUniqueness = (collection, keyDb, keyReq)=>{
                 });
             }
         })
+    }
+}
+
+
+exports.checkAvailabilityIdParam = (collection, param)=>{
+    return (req, res, next)=>{
+        collection.findOne({_id: mongoose.Types.ObjectId(req.params[param]), owner: req.user._id}).then((result)=>{
+            if(result == null){
+                let name = param.substring(0, param.length-2);
+                let collectionName = (collection == INV2)?"inventory":"store"; 
+                res.statusCode = 404;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: `${name} doesn't exist in your ${collectionName}`});
+            }
+            else{
+                return next();
+            }
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        });
     }
 }
 
@@ -96,7 +121,7 @@ exports.distribute = (collection, req, res, ...fields) => {
                 user1.save()
                 .then((user1)=>{
                   // Document created successfully in USER1 and now creating a document for the user in USER2
-                  user2 = new USER2({
+                  let user2 = new USER2({
                     _id: mongoose.Types.ObjectId(user1._id),
                     storeName: req.body.storeName
                   });
@@ -123,7 +148,7 @@ exports.distribute = (collection, req, res, ...fields) => {
         );
     }
     else if(collection == "INV"){
-        inv1 = new INV1({
+        let inv1 = new INV1({
             name: req.body.name,
             description: req.body.description,
             imageLink: req.body.imageLink
@@ -152,6 +177,33 @@ exports.distribute = (collection, req, res, ...fields) => {
             res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
         })
     }
-
+    else if(collection == "STR"){
+        let str1Item = new STR1({
+            sellAmount: req.body.amount,
+            sellPrice: req.body.price 
+        });
+        str1Item.save().then((str1i)=>{
+            let str2Item = new STR2({
+                _id: mongoose.Types.ObjectId(str1i._id),
+                item: mongoose.Types.ObjectId(req.params.itemId),
+                owner: mongoose.Types.ObjectId(req.user._id)
+            });
+            str2Item.save().then((item)=>{
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "item added successfully to your store"});
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            })
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        });
+    }
 
 }
