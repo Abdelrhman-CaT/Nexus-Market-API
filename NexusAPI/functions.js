@@ -35,6 +35,35 @@ exports.checkForRequiredFields = (...fields)=>{
 }
 
 
+exports.checkQuery = (Qname)=>{
+    return (req, res, next)=>{
+        if(req.query[Qname]){
+            let test = req.query[Qname]
+            // if the string contains only spaces, it is rejected
+            if (test.replace(/\s/g, '').length) { // replace space with empty string then measure its length
+                return next();
+            }
+            else{
+                res.statusCode = 400;
+                res.setHeader("Content-Type", "application/json");
+                res.json({
+                    success: false,
+                    status: "invalid query"
+                });
+            }
+        }
+        else{
+            res.statusCode = 400;
+            res.setHeader("Content-Type", "application/json");
+            res.json({
+                success: false,
+                status: "invalid query"
+            });
+        }
+    }
+}
+
+
 exports.checkUniqueness = (collection, keyDb, keyReq)=>{
     return (req, res, next)=>{
         let query = {};

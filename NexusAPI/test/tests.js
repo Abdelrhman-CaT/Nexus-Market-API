@@ -453,6 +453,30 @@ describe("Store API Tests", ()=>{
             res.body.items[0].should.have.property("storeName");
             res.body.items[0].should.have.property("storeId");
             res.body.items[0].should.have.property("state");
+            done();
+        });
+    });
+
+
+    it("should return all items that match a search query", (done)=>{
+        request(server)
+        .get("/api/stores/search/items")
+        .set("Authorization", `bearer ${token}`)
+        .query({name: "npm"})
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("items");
+            res.body.items.should.be.a("array");
+            res.body.items[0].should.have.property("id");
+            res.body.items[0].should.have.property("name");
+            res.body.items[0].should.have.property("amount");
+            res.body.items[0].should.have.property("price");
+            res.body.items[0].should.have.property("imageLink");
+            res.body.items[0].should.have.property("description");
+            res.body.items[0].should.have.property("storeId");
+            res.body.items[0].should.have.property("storeName");
             //--------------------------------------------------------------
             INV2.findByIdAndRemove(itemId).then(()=>{
                 INV1.findByIdAndRemove(itemId).then(()=>{
@@ -479,6 +503,5 @@ describe("Store API Tests", ()=>{
             //----------------------------------------------------------------------
         });
     });
-
 
 });
