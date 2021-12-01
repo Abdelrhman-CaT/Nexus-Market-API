@@ -57,7 +57,7 @@ storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
     .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
 
@@ -100,7 +100,7 @@ storeRouter.route("/mystore/:itemId")
     .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 })
 
@@ -176,14 +176,14 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
             .catch((err)=>{
                 res.statusCode = 500;
                 res.setHeader("Content-Type", "application/json");
-                res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
             });
         }
     })
     .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
 
@@ -413,7 +413,7 @@ storeRouter.get("/:storeId", (req, res, next)=>{
     .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
 
