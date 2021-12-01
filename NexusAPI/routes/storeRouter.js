@@ -27,7 +27,7 @@ storeRouter.options("*", cors.corsWithOptions, (req, res, next) => {
 // get all items from my store
 storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
     STR2.find({$or:[{owner: mongoose.Types.ObjectId(req.user._id)}, {otherSellers: {$elemMatch:{_id: mongoose.Types.ObjectId(req.user._id)}}}]})
-    .populate("_id").populate("item").then((items)=>{
+    .populate("_id").populate("item").populate("owner").then((items)=>{
         let output = [];
         for(item of items){
             let temp = {
@@ -36,7 +36,9 @@ storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
                 price: item._id.sellPrice,
                 amount: item._id.sellAmount,
                 imageLink: item.item.imageLink,
-                description: item.item.description
+                description: item.item.description,
+                storeName: item.owner.storeName,
+                storeId: item.owner._id
             };
             if(item.owner.equals(req.user._id)){
                 temp.state = "owned";
@@ -63,7 +65,7 @@ storeRouter.route("/mystore/:itemId")
 
 // get info about a specific item in my store
 .get(authenticate.verifyUser, (req, res, next)=>{
-    STR2.findById(req.params.itemId).populate("_id").populate("item").then((item)=>{
+    STR2.findById(req.params.itemId).populate("_id").populate("item").populate("owner").then((item)=>{
         if(item == null){
             res.statusCode = 404;
             res.setHeader("Content-Type", "application/json");
@@ -78,7 +80,9 @@ storeRouter.route("/mystore/:itemId")
                     amount: item._id.sellAmount,
                     imageLink: item.item.imageLink,
                     description: item.item.description,
-                    state: (item.owner.equals(req.user._id))?"owned":"imported"
+                    state: (item.owner.equals(req.user._id))?"owned":"imported",
+                    storeName: item.owner.storeName,
+                    storeId: item.owner._id
                 };
                 res.statusCode = 200;
                 res.setHeader("Content-Type", "application/json");
@@ -338,6 +342,18 @@ storeRouter.route("/mystore/:itemId")
 });
 
 
+
+// get all items from all stores
+storeRouter.get("/", authenticate.verifyUser, (req, res, next)=>{
+    STR2.find({}).populate("_id").populate("owner").populate("item").then((items)=>{
+
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
 
 
 
