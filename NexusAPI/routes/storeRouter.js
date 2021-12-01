@@ -40,7 +40,7 @@ storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
                 storeName: item.owner.storeName,
                 storeId: item.owner._id
             };
-            if(item.owner.equals(req.user._id)){
+            if(item.owner._id.equals(req.user._id)){
                 temp.state = "owned";
             }
             else{
@@ -72,7 +72,7 @@ storeRouter.route("/mystore/:itemId")
             res.json({success: false, status: "item doesn’t exist in your store"});
         }
         else{
-            if(item.owner.equals(req.user._id) || item.otherSellers.id(req.user._id)){
+            if(item.owner._id.equals(req.user._id) || item.otherSellers.id(req.user._id)){
                 let output = {
                     id: item._id._id,
                     name: item.item.name,
@@ -80,7 +80,7 @@ storeRouter.route("/mystore/:itemId")
                     amount: item._id.sellAmount,
                     imageLink: item.item.imageLink,
                     description: item.item.description,
-                    state: (item.owner.equals(req.user._id))?"owned":"imported",
+                    state: (item.owner._id.equals(req.user._id))?"owned":"imported",
                     storeName: item.owner.storeName,
                     storeId: item.owner._id
                 };
@@ -371,6 +371,49 @@ storeRouter.get("/", authenticate.verifyUser, (req, res, next)=>{
     });
 });
 
+
+
+// get all items from a particular store
+storeRouter.get("/:storeId", (req, res, next)=>{
+    STR2.find({$or:[{owner: mongoose.Types.ObjectId(req.params.storeId)}, {otherSellers: {$elemMatch:{_id: mongoose.Types.ObjectId(req.params.storeId)}}}]})
+    .populate("_id").populate("item").populate("owner").then((items)=>{
+        if(items.length == 0){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "store doesn't exist"});
+        }
+        else{
+            let output = [];
+            for(let item of items){
+                let temp = {
+                    id: item._id._id,
+                    name: item.item.name,
+                    price: item._id.sellPrice,
+                    amount: item._id.sellAmount,
+                    imageLink: item.item.imageLink,
+                    description: item.item.description,
+                    storeName: item.owner.storeName,
+                    storeId: item.owner._id
+                };
+                if(item.owner._id.equals(mongoose.Types.ObjectId(req.params.storeId))){
+                    temp.state = "owned";
+                }
+                else{
+                    temp.state = "imported";
+                }
+                output.push(temp);
+            }
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: true, items: output});
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
 
 
 
