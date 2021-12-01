@@ -18,6 +18,7 @@ const STR2 = require("../models/storeItem2Schema");
 var cors = require("../cors");
 const functions = require("../functions");
 const authenticate = require("../authenticate");
+const { search } = require('superagent');
 
 
 storeRouter.options("*", cors.corsWithOptions, (req, res, next) => {
@@ -417,5 +418,37 @@ storeRouter.get("/:storeId", (req, res, next)=>{
 
 
 
+// search by name in all items in the system
+// the query is ?name
+
+storeRouter.get("/search/items", authenticate.verifyUser, functions.checkQuery("name"), (req, res, next)=>{
+    STR2.find({}).populate("_id").populate("owner").populate("item").then((items)=>{
+        var regex = new RegExp(req.query.name, 'i');
+        let output = [];
+        for(let item of items){
+            if(item.item.name.match(regex)){
+                let temp = {
+                    id: item._id._id,
+                    name: item.item.name,
+                    price: item._id.sellPrice,
+                    amount: item._id.sellAmount,
+                    imageLink: item.item.imageLink,
+                    description: item.item.description,
+                    storeId: item.owner._id,
+                    storeName: item.owner.storeName
+                };
+                output.push(temp);
+            }
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({success: true, items: output});
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
 
 module.exports = storeRouter;
