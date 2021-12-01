@@ -80,7 +80,7 @@ transactionRouter.get("/purchased", authenticate.verifyUser, (req, res, next)=>{
 
 
 // get all transactions
-transactionRouter.get("/",  authenticate.verifyUser, (req, res, next)=>{
+transactionRouter.get("/",  authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next)=>{
     TRAN2.find({}).populate("_id").populate("seller")
     .populate("buyer").then((transactions)=>{
         let output = [];
