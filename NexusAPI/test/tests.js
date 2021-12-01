@@ -16,9 +16,12 @@ const USER1 = require("../models/user1Schema");
 const USER2 = require("../models/user2Schema");
 const INV1 = require("../models/inventoryItem1Schema");
 const INV2 = require("../models/inventoryItem2Schema");
+const STR1 = require("../models/storeItem1Schema");
+const STR2 = require("../models/storeItem2Schema");
 
 let token;
-let itemId;  // needs to be reassgined beginning from testing store api
+let itemId;  // (inventoryItemId) needs to be reassgined beginning from testing store api
+let strItemId
 
 describe("Users API Tests", ()=>{
     it("should sign me up", (done)=>{
@@ -55,7 +58,12 @@ describe("Users API Tests", ()=>{
             res.body.should.have.property("status", "user login successfully");
             res.body.should.have.property("token");
             token = res.body.token;
-            done();
+            USER1.findOne({username: "npmTestingUserName"}).then((user)=>{
+                user.admin = true;
+                user.save().then((u)=>{
+                    done();
+                })
+            })
         });
     });
 
@@ -73,34 +81,22 @@ describe("Users API Tests", ()=>{
             res.body.user.should.have.property("firstName");
             res.body.user.should.have.property("lastName");
             res.body.user.should.have.property("balance");
-            
-            // Removing data used in the test
-            USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                    done();
-                });
-            });
+            done();
         });
     });
 
 
     it("should show me all users (I am an admin)", (done)=>{
         request(server)
-        .post('/api/users/login')
-        .send({username: "ziad", password: "adminpassword"})
+        .get("/api/users")
+        .set("Authorization", `bearer ${token}`)
         .end((err, res)=>{
-            token = res.body.token;
-            request(server)
-            .get("/api/users")
-            .set("Authorization", `bearer ${token}`)
-            .end((err, res)=>{
-                res.should.have.status(200);
-                res.body.should.be.a('object');
-                res.body.should.have.property("success", true);
-                res.body.should.have.property("users");
-                res.body.users.should.be.a("array");
-                done();
-            });
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("users");
+            res.body.users.should.be.a("array");
+            done();
         });
     });
 
@@ -235,6 +231,41 @@ describe("Inventory API Tests", ()=>{
 
 
 describe("Store API Tests", ()=>{
+
+    it("should add an item from my inventory to my store", (done)=>{
+        request(server)
+        .post("/api/myinventory")
+        .set("Authorization", `bearer ${token}`)
+        .send({
+            "name": "npmTestingItem",
+            "price": 30,
+            "amount": 10,
+            "description": "npmTestingDescription",
+            "imageLink": "npmTestinglink"
+        })
+        .end((err, res)=>{
+            INV1.findOne({name: "npmTestingItem"}).then((item)=>{
+                itemId = item._id;
+                request(server)
+                .post(`/api/stores/mystore/${itemId}`)
+                .send({amount: 10, price: 10})
+                .set("Authorization", `bearer ${token}`)
+                .end((err, res)=>{
+                    res.should.have.status(200);
+                    res.body.should.be.a("object");
+                    res.body.should.have.property("success", true);
+                    res.body.should.have.property("status", "item added successfully to your store");
+                    
+                    STR2.findOne({item: mongoose.Types.ObjectId(itemId)}).then((i)=>{
+                        strItemId = i._id;  
+                        done();
+                    })
+                });
+            });
+        });
+    });
+
+
     it("should get all items in my store", (done)=>{
         request(server)
         .get("/api/stores/mystore")
@@ -245,7 +276,52 @@ describe("Store API Tests", ()=>{
             res.body.should.have.property("success", true);
             res.body.should.have.property("items");
             res.body.items.should.be.a("array");
+            res.body.items[0].should.be.a("object");
+            res.body.items[0].should.have.property("id");
+            res.body.items[0].should.have.property("name");
+            res.body.items[0].should.have.property("price");
+            res.body.items[0].should.have.property("amount");
+            res.body.items[0].should.have.property("imageLink");
+            res.body.items[0].should.have.property("description");
+            res.body.items[0].should.have.property("state");
             done();
+        });
+    });
+
+
+    it("should get info about a specific item in my store", (done)=>{
+        request(server)
+        .get(`/api/stores/mystore/${strItemId}`)
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("item");
+            res.body.item.should.be.a("object");
+            res.body.item.should.have.property("id");
+            res.body.item.should.have.property("name");
+            res.body.item.should.have.property("price");
+            res.body.item.should.have.property("amount");
+            res.body.item.should.have.property("imageLink");
+            res.body.item.should.have.property("description");
+            res.body.item.should.have.property("state");
+            
+            INV2.findByIdAndRemove(itemId).then(()=>{
+                INV1.findByIdAndRemove(itemId).then(()=>{
+                    STR2.findByIdAndRemove(strItemId).then(()=>{
+                        STR1.findByIdAndRemove(strItemId).then(()=>{
+                            // Removing data used in the test
+                            USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                    done();
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
         });
     });
 });

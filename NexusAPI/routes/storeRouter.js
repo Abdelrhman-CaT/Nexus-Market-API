@@ -23,9 +23,9 @@ storeRouter.options("*", cors.corsWithOptions, (req, res, next) => {
   res.sendStatus(200);
 });
 
-
+// get all items from my store
 storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
-    STR2.find({$or:[{seller: mongoose.Types.ObjectId(req.user._id)}, {otherSellers: {$elemMatch:{_id: mongoose.Types.ObjectId(req.user._id)}}}]})
+    STR2.find({$or:[{owner: mongoose.Types.ObjectId(req.user._id)}, {otherSellers: {$elemMatch:{_id: mongoose.Types.ObjectId(req.user._id)}}}]})
     .populate("_id").populate("item").then((items)=>{
         let output = [];
         for(item of items){
@@ -34,10 +34,10 @@ storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
                 name: item.item.name,
                 price: item._id.sellPrice,
                 amount: item._id.sellAmount,
-                imageLink: item._id.imageLink,
+                imageLink: item.item.imageLink,
                 description: item.item.description
             };
-            if(item.seller.equals(req.user._id)){
+            if(item.owner.equals(req.user._id)){
                 temp.state = "owned";
             }
             else{
@@ -56,6 +56,70 @@ storeRouter.get("/mystore", authenticate.verifyUser, (req, res, next)=>{
     });
 });
 
+
+
+storeRouter.route("/mystore/:itemId")
+
+// get info about a specific item in my store
+.get(authenticate.verifyUser, (req, res, next)=>{
+    STR2.findById(req.params.itemId).populate("_id").populate("item").then((item)=>{
+        if(item == null){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({success: false, status: "item doesn’t exist in your store"});
+        }
+        else{
+            if(item.owner.equals(req.user._id) || item.otherSellers.id(req.user._id)){
+                let output = {
+                    id: item._id._id,
+                    name: item.item.name,
+                    price: item._id.sellPrice,
+                    amount: item._id.sellAmount,
+                    imageLink: item.item.imageLink,
+                    description: item.item.description,
+                    state: (item.owner.equals(req.user._id))?"owned":"imported"
+                };
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({success: true, item: output});
+            }
+            else{
+               res.statusCode = 404;
+               res.setHeader("Content-Type", "application/json");
+               res.json({success: false, status: "item doesn’t exist in your store"});
+            }
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+})
+
+
+// add in a item from my inventory to my store
+.post(authenticate.verifyUser, functions.checkForRequiredFields("amount", "price"),
+functions.checkAvailabilityIdParam(INV2, "itemId"), 
+functions.checkNumbersValidity("amount", "prices"), 
+(req, res, next)=>{
+    STR2.findOne({owner: mongoose.Types.ObjectId(req.user._id), item: mongoose.Types.ObjectId(req.params.itemId)})
+    .then((strItem)=>{
+        if(strItem){
+            res.statusCode = 400;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "item already exists in your store"});
+        }
+        else{
+            functions.distribute("STR", req, res);
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
 
 
 
