@@ -451,4 +451,17 @@ storeRouter.get("/search/items", authenticate.verifyUser, functions.checkQuery("
     });
 });
 
+
+
+// purchase an item
+storeRouter.put("/purchase/:itemId", authenticate.verifyUser, functions.checkForRequiredFields("amount"),
+functions.checkNumbersValidity("amount"), (req, res, next)=>{
+    STR2.findById(req.params.itemId).then((item)=>{
+        
+    })
+});
+
+
+
+
 module.exports = storeRouter;
