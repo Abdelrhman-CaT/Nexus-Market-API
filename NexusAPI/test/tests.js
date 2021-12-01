@@ -344,28 +344,86 @@ describe("Store API Tests", ()=>{
                     res.body.should.be.a("object");
                     res.body.should.have.property("success", true);
                     res.body.should.have.property("status", "item added successfully to your store");
-//--------------------------------------------------------------
-                    INV2.findByIdAndRemove(itemId).then(()=>{
-                        INV1.findByIdAndRemove(itemId).then(()=>{
-                            STR2.findByIdAndRemove(strItemId).then(()=>{
-                                STR1.findByIdAndRemove(strItemId).then(()=>{
-                                    // Removing data used in the test
-                                    USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                        USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                            USER1.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                                USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                                    done();
+                    done();
+                });
+            });
+        });
+    });
+
+    it("should edit an item in my store (owned items only)", (done)=>{
+        request(server)
+        .put(`/api/stores/mystore/${strItemId}`)
+        .set("Authorization", `bearer ${token}`)
+        .send({amount: 1})
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "item edited successfully");
+            done();
+        });
+    });
+
+
+    it("should delete an item from my store", (done)=>{
+        request(server)
+        .post("/api/myinventory")
+        .set("Authorization", `bearer ${token}`)
+        .send({
+            "name": "npmTestingItem2",
+            "price": 30,
+            "amount": 10,
+            "description": "npmTestingDescription",
+            "imageLink": "npmTestinglink"
+        })
+        .end((err, res)=>{
+            INV1.findOne({name: "npmTestingItem2"}).then((i)=>{
+                itemId2 = i._id;
+                request(server)
+                .post(`/api/stores/mystore/${itemId2}`)
+                .send({amount: 1, price: 10})
+                .set("Authorization", `bearer ${token}`)
+                .end((err, res)=>{
+                    STR2.findOne({item: mongoose.Types.ObjectId(itemId2)}).then((ii)=>{
+                        strItemId2 = ii._id;
+                        request(server)
+                        .delete(`/api/stores/mystore/${strItemId2}`)
+                        .set("Authorization", `bearer ${token}`)
+                        .end((err, res)=>{
+                            res.should.have.status(200);
+                            res.body.should.be.a("object");
+                            res.body.should.have.property("success", true);
+                            res.body.should.have.property("status", "item deleted successfully");
+                            //--------------------------------------------------------------
+                            INV2.findByIdAndRemove(itemId).then(()=>{
+                                INV1.findByIdAndRemove(itemId).then(()=>{
+                                    STR2.findByIdAndRemove(strItemId).then(()=>{
+                                        STR1.findByIdAndRemove(strItemId).then(()=>{
+                                            // Removing data used in the test
+                                            USER2.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                                USER1.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                                    USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                                        USER1.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
+                                                            INV2.findByIdAndRemove(itemId2).then(()=>{
+                                                                INV1.findByIdAndRemove(itemId2).then(()=>{
+                                                                    done();
+                                                                });
+                                                            });
+                                                        });
+                                                    });
                                                 });
                                             });
                                         });
                                     });
                                 });
                             });
+                            //----------------------------------------------------------------------
                         });
                     });
-//----------------------------------------------------------------------
                 });
             });
         });
     });
+
+
 });

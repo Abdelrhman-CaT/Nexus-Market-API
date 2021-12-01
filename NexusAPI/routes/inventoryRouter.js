@@ -152,7 +152,7 @@ inventoryRouter.route("/:itemId")
             }
 
             if(req.body.amount){
-                STR2.findOne({seller: mongoose.Types.ObjectId(req.user._id), item: mongoose.Types.ObjectId(inv2Item._id)})
+                STR2.findOne({owner: mongoose.Types.ObjectId(req.user._id), item: mongoose.Types.ObjectId(inv2Item._id)})
                 .populate("_id").then((sellItem)=>{
                     if(sellItem == null){
                         inv2Item.amount = req.body.amount;
@@ -208,9 +208,37 @@ inventoryRouter.route("/:itemId")
         else{
             INV1.findByIdAndRemove(req.params.itemId).then(()=>{
                 item.remove().then(()=>{
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json({success: true, status: "item deleted successfully"});
+                    STR2.findOne({item: mongoose.Types.ObjectId(req.params.itemId)}).then((str2Item)=>{
+                        if(str2Item){
+                            STR1.findByIdAndRemove(str2Item._id).then(()=>{
+                                str2Item.remove().then(()=>{
+                                    res.statusCode = 200;
+                                    res.setHeader("Content-Type", "application/json");
+                                    res.json({success: true, status: "item deleted successfully"});
+                                })
+                                .catch((err)=>{
+                                    res.statusCode = 500;
+                                    res.setHeader("Content-Type", "application/json");
+                                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                                })
+                            })
+                            .catch((err)=>{
+                                res.statusCode = 500;
+                                res.setHeader("Content-Type", "application/json");
+                                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                            })
+                        }
+                        else{
+                            res.statusCode = 200;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({success: true, status: "item deleted successfully"});
+                        }
+                    })
+                    .catch((err)=>{
+                        res.statusCode = 500;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                    })
                 })
                 .catch((err)=>{
                     res.statusCode = 500;

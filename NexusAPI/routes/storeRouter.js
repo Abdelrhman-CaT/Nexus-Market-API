@@ -183,8 +183,163 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
 
 
 
+
+storeRouter.route("/mystore/:itemId")
+
 // edit an item in my store (can edit owned items only)
-storeRouter.put("/mystore/:itemId", authenticate.verifyUser, );
+.put(authenticate.verifyUser, functions.checkNumbersValidity("amount", "price"), 
+(req, res, next)=>{
+    STR2.findOne({_id: mongoose.Types.ObjectId(req.params.itemId), owner: mongoose.Types.ObjectId(req.user._id)})
+    .then((item)=>{
+        if(item == null){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({success: false, status: "item doesn't exist in your store"});
+        }
+        else{
+            if(req.body.name || req.body.description || req.body.imageLink){
+                INV1.findById(item.item).then((inv1Item)=>{
+                    if(req.body.name){
+                        inv1Item.name = req.body.name;
+                    }
+                    if(req.body.description){
+                        inv1Item.description = req.body.description;
+                    }
+                    if(req.body.imageLink){
+                        inv1Item.imageLink = req.body.imageLink;
+                    }
+                    inv1Item.save().then((i)=>{
+                        if(!(req.body.price || req.body.amount)){
+                            res.statusCode = 200;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: true, status: "item edited successfully"});
+                        }
+                    })
+                    .catch((err)=>{
+                        res.statusCode = 500;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                    })
+                })
+                .catch((err)=>{
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                })
+            }
+
+            if(req.body.price){
+                item.sellPrice = req.body.price;
+                if(!req.body.amount){
+                    item.save().then((i)=>{
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: true, status: "item edited successfully"});
+                    })
+                    .catch((err)=>{
+                        res.statusCode = 500;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                    });
+                } 
+            }
+
+            if(req.body.amount){
+                INV2.findOne({owner: mongoose.Types.ObjectId(req.user._id), _id: mongoose.Types.ObjectId(item.item)})
+                .then((invItem)=>{
+                    if(invItem.amount < req.body.amount){
+                        res.statusCode = 400;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({success: false, status: "amount is larger than the amount presented in the inventory for that item"});
+                    }
+                    else{
+                        item.amount = req.body.amount;
+                        item.save().then((i)=>{
+                            res.statusCode = 200;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: true, status: "item edited successfully"});
+                        }).catch((err)=>{
+                            res.statusCode = 500;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                        });
+                    }
+                });
+            }
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+})
+
+
+// delete and item from your store
+.delete(authenticate.verifyUser, (req, res, next)=>{
+    STR2.findOne({_id: mongoose.Types.ObjectId(req.params.itemId)}).then((item)=>{
+        if(item == null){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({success: false, status: "item doesn't exist in your store"});
+        }
+        else if(item.owner.equals(req.user._id) || item.otherSellers.id(req.user._id)){
+            if(item.owner.equals(req.user._id)){
+                STR1.findByIdAndRemove(item._id).then(()=>{
+                    item.remove().then(()=>{
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({success: true, status: "item deleted successfully"});
+                    })
+                    .catch((err)=>{
+                        res.statusCode = 500;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                    });
+                })
+                .catch((err)=>{
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                });
+            }
+            else{
+                let newOtherSellers = [];
+                for(seller of item.otherSellers){
+                    if(!(seller._id.equals(req.user._id))){
+                        newOtherSellers.push(seller);
+                    }
+                }
+                item.otherSellers = newOtherSellers;
+                item.save().then((i)=>{
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({success: true, status: "item deleted successfully"});
+                })
+                .catch((err)=>{
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                });
+            }
+        }
+        else{
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({success: false, status: "item doesn't exist in your store"});
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
+
+
+
+
 
 
 
