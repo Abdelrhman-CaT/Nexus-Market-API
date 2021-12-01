@@ -19,6 +19,7 @@ var cors = require("../cors");
 const functions = require("../functions");
 const authenticate = require("../authenticate");
 
+
 storeRouter.options("*", cors.corsWithOptions, (req, res, next) => {
   res.sendStatus(200);
 });
@@ -99,9 +100,8 @@ storeRouter.route("/mystore/:itemId")
 
 
 // add in a item from my inventory to my store
-.post(authenticate.verifyUser, functions.checkForRequiredFields("amount", "price"),
-functions.checkAvailabilityIdParam(INV2, "itemId"), 
-functions.checkNumbersValidity("amount", "prices"), 
+.post(authenticate.verifyUser, functions.checkForRequiredFields("amount", "price"), 
+functions.checkNumbersValidity("amount", "price"), 
 (req, res, next)=>{
     STR2.findOne({owner: mongoose.Types.ObjectId(req.user._id), item: mongoose.Types.ObjectId(req.params.itemId)})
     .then((strItem)=>{
@@ -111,7 +111,67 @@ functions.checkNumbersValidity("amount", "prices"),
             res.json({ success: false, status: "item already exists in your store"});
         }
         else{
-            functions.distribute("STR", req, res);
+            INV2.findOne({_id: mongoose.Types.ObjectId(req.params.itemId), owner: req.user._id}).then((result)=>{
+                if(result == null){ 
+                    res.statusCode = 404;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "item doesn't exist in your inventory"});
+                }
+                else{
+                    if(result.amount < req.body.amount){
+                        res.statusCode = 400;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json({ success: false, status: "the input amount is larger than the amount presented in the inventory for that item"});
+                    }
+                    else{
+                        functions.distribute("STR", req, res);
+                    }
+                }
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            });
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+});
+
+
+
+// add item from other stores to my store
+storeRouter.put("/add/:itemId", authenticate.verifyUser, 
+(req, res, next)=>{
+    STR2.findById(req.params.itemId).then((item)=>{
+        if(item == null){
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "item doesn't exist"});
+        }
+        else if(item.otherSellers.id(req.user._id) || item.owner.equals(mongoose.Types.ObjectId(req.user._id))){
+            res.statusCode = 400;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "item already exists in your store"});
+        }
+        else{
+            item.otherSellers.push({
+                _id: mongoose.Types.ObjectId(req.user._id)
+            });
+            item.save().then((i)=>{
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "item added successfully to your store"});
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+            });
         }
     })
     .catch((err)=>{

@@ -21,7 +21,11 @@ const STR2 = require("../models/storeItem2Schema");
 
 let token;
 let itemId;  // (inventoryItemId) needs to be reassgined beginning from testing store api
-let strItemId
+let strItemId;
+let token2;
+let itemId2;
+let strItemId2;
+let token3;
 
 describe("Users API Tests", ()=>{
     it("should sign me up", (done)=>{
@@ -307,21 +311,61 @@ describe("Store API Tests", ()=>{
             res.body.item.should.have.property("description");
             res.body.item.should.have.property("state");
             
-            INV2.findByIdAndRemove(itemId).then(()=>{
-                INV1.findByIdAndRemove(itemId).then(()=>{
-                    STR2.findByIdAndRemove(strItemId).then(()=>{
-                        STR1.findByIdAndRemove(strItemId).then(()=>{
-                            // Removing data used in the test
-                            USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                    done();
+            done();
+        });
+    });
+
+
+    it("should add an item from another store to my store", (done)=>{
+        request(server)
+        .post('/api/users/signup')
+        .send({
+            firstName: "test", 
+            lastName: "test", 
+            username: "npmTestingUserName2",
+            password: "1234",
+            email: "sdsds@wsesed.com",
+            storeName: "npmTestingStoreName2"
+        })
+        .end((err, res)=>{
+            request(server)
+            .post('/api/users/login')
+            .send({
+                username: "npmTestingUserName2",
+                password: "1234"
+            })
+            .end((err, res)=>{
+                token2 = res.body.token;
+                request(server)
+                .put(`/api/stores/add/${strItemId}`)
+                .set("Authorization", `bearer ${token2}`)
+                .end((err, res)=>{
+                    res.should.have.status(200);
+                    res.body.should.be.a("object");
+                    res.body.should.have.property("success", true);
+                    res.body.should.have.property("status", "item added successfully to your store");
+//--------------------------------------------------------------
+                    INV2.findByIdAndRemove(itemId).then(()=>{
+                        INV1.findByIdAndRemove(itemId).then(()=>{
+                            STR2.findByIdAndRemove(strItemId).then(()=>{
+                                STR1.findByIdAndRemove(strItemId).then(()=>{
+                                    // Removing data used in the test
+                                    USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
+                                        USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
+                                            USER1.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                                USER2.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
+                                                    done();
+                                                });
+                                            });
+                                        });
+                                    });
                                 });
                             });
                         });
                     });
+//----------------------------------------------------------------------
                 });
             });
-
         });
     });
 });
