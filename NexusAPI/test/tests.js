@@ -505,3 +505,48 @@ describe("Store API Tests", ()=>{
     });
 
 });
+
+
+describe("Transactions API Tests", ()=>{
+    it("should show my sold transactions", (done)=>{
+        request(server)
+        .get("/api/transactions/sold")
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("transactions");
+            res.body.transactions.should.be.a("array");
+            done();
+        });
+    });
+
+    it("should show my purchased transactions", (done)=>{
+        request(server)
+        .get("/api/transactions/purchased")
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("transactions");
+            res.body.transactions.should.be.a("array");
+            done();
+        });
+    });
+
+    it("should show all transactions", (done)=>{
+        request(server)
+        .get("/api/transactions")
+        .set("Authorization", `bearer ${token}`)
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("transactions");
+            res.body.transactions.should.be.a("array");
+            done();
+        });
+    });
+});
