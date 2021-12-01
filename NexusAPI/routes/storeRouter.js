@@ -144,7 +144,7 @@ functions.checkNumbersValidity("amount", "price"),
     .catch((err)=>{
         res.statusCode = 500;
         res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "process failed", err: {name: err.name, message: err.message} });
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
     });
 });
 
