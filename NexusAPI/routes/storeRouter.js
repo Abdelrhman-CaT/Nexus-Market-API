@@ -485,6 +485,13 @@ functions.checkNumbersValidity("amount"), (req, res, next)=>{
                         else{
                             USER2.findById(item.owner).then((seller)=>{
                                 // purchasing
+                                /*
+                                    STEPS:
+                                        1- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                                        2- increase buyer's balance and decreas seller's balance 
+                                        3- create a new inventory item for the buyer
+                                        4- create a new transaction to record the sale
+                                */
                                 res.json({s:true});
                             })
                             .catch((err)=>{
