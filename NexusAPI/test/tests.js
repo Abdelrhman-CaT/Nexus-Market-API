@@ -525,17 +525,17 @@ describe("Transactions API Tests", ()=>{
             res.body.should.have.property("transactions");
             res.body.transactions.should.be.a("array");
             //--------------------------------------------------------------
-            INV2.findByIdAndRemove(itemId).then(()=>{
-                INV1.findByIdAndRemove(itemId).then(()=>{
-                    STR2.findByIdAndRemove(strItemId).then(()=>{
-                        STR1.findByIdAndRemove(strItemId).then(()=>{
+            INV2.findByIdAndDelete(itemId).then(()=>{
+                INV1.findByIdAndDelete(itemId).then(()=>{
+                    STR2.findByIdAndDelete(strItemId).then(()=>{
+                        STR1.findByIdAndDelete(strItemId).then(()=>{
                             // Removing data used in the test
-                            USER1.findOneAndRemove({username: "npmTestingUserName"}).then(()=>{
-                                USER2.findOneAndRemove({storeName: "npmTestingStoreName"}).then(()=>{
-                                    USER1.findOneAndRemove({username: "npmTestingUserName2"}).then(()=>{
-                                        USER2.findOneAndRemove({storeName: "npmTestingStoreName2"}).then(()=>{
-                                            INV2.findByIdAndRemove(itemId2).then(()=>{
-                                                INV1.findByIdAndRemove(itemId2).then(()=>{
+                            USER1.findOneAndDelete({username: "npmTestingUserName"}).then(()=>{
+                                USER2.findOneAndDelete({storeName: "npmTestingStoreName"}).then(()=>{
+                                    USER1.findOneAndDelete({username: "npmTestingUserName2"}).then(()=>{
+                                        USER2.findOneAndDelete({storeName: "npmTestingStoreName2"}).then(()=>{
+                                            INV2.findByIdAndDelete(itemId2).then(()=>{
+                                                INV1.findByIdAndDelete(itemId2).then(()=>{
                                                     done();
                                                 });
                                             });
