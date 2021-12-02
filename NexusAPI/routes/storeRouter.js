@@ -178,8 +178,8 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
                         imageLink: ii.item.imageLink,
                         description: ii.item.description,
                         state: "imported",
-                        storeName: item.owner.storeName,
-                        storeId: item.owner._id
+                        storeName: ii.owner.storeName,
+                        storeId: ii.owner._id
                     };
                     res.statusCode = 200;
                     res.setHeader("Content-Type", "application/json");
