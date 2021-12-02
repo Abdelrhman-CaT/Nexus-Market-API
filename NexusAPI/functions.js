@@ -11,8 +11,8 @@ const INV1 = require("./models/inventoryItem1Schema");
 const INV2 = require("./models/inventoryItem2Schema");
 const STR1 = require("./models/storeItem1Schema");
 const STR2 = require("./models/storeItem2Schema");
-const TRAN1 = require("../models/transaction1Schema");
-const TRAN2 = require("../models/transaction2Schema");
+const TRAN1 = require("./models/transaction1Schema");
+const TRAN2 = require("./models/transaction2Schema");
 
 
 
