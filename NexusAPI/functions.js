@@ -11,6 +11,9 @@ const INV1 = require("./models/inventoryItem1Schema");
 const INV2 = require("./models/inventoryItem2Schema");
 const STR1 = require("./models/storeItem1Schema");
 const STR2 = require("./models/storeItem2Schema");
+const TRAN1 = require("../models/transaction1Schema");
+const TRAN2 = require("../models/transaction2Schema");
+
 
 
 exports.checkForRequiredFields = (...fields)=>{
@@ -257,4 +260,32 @@ exports.distribute = (collection, req, res, ...fields) => {
         });
     }
 
+}
+
+
+
+
+
+exports.purchase = (item, seller, buyer, req, res)=>{
+    // 1- decrease buyer's balance and increase seller's balance
+    let p = item._id.sellPrice;
+    buyer.balance -= p;
+    buyer.save().then((b)=>{
+        seller.balance += p;
+        seller.save().then((s)=>{
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: true, status: "purchased", buyer: b, seller: s});
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+        });
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
 }
