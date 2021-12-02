@@ -169,9 +169,22 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
                 _id: mongoose.Types.ObjectId(req.user._id)
             });
             item.save().then((i)=>{
-                res.statusCode = 200;
-                res.setHeader("Content-Type", "application/json");
-                res.json({ success: true, status: "item added successfully to your store"});
+                STR2.findById(i._id).populate("_id").populate("item").then((ii)=>{
+                    let output = {
+                        id: ii._id._id,
+                        name: ii.item.name,
+                        price: ii._id.sellPrice,
+                        amount: ii._id.sellAmount,
+                        imageLink: ii.item.imageLink,
+                        description: ii.item.description,
+                        state: "imported",
+                        storeName: item.owner.storeName,
+                        storeId: item.owner._id
+                    };
+                    res.statusCode = 200;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: true, status: "item added successfully to your store", item: output});
+                });
             })
             .catch((err)=>{
                 res.statusCode = 500;
@@ -235,19 +248,26 @@ storeRouter.route("/mystore/:itemId")
             }
 
             if(req.body.price){
-                item.sellPrice = req.body.price;
-                if(!req.body.amount){
-                    item.save().then((i)=>{
-                        res.statusCode = 200;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json({ success: true, status: "item edited successfully"});
-                    })
-                    .catch((err)=>{
-                        res.statusCode = 500;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-                    });
-                } 
+                STR1.findOneAndUpdate({_id: mongoose.Types.ObjectId(item._id)}, 
+                {sellPrice: req.body.price}).then((i)=>{
+                    if(!req.body.amount){
+                        item.save().then((i)=>{
+                            res.statusCode = 200;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: true, status: "item edited successfully"});
+                        })
+                        .catch((err)=>{
+                            res.statusCode = 500;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                        });
+                    } 
+                })
+                .catch((err)=>{
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                }); 
             }
 
             if(req.body.amount){
@@ -259,12 +279,13 @@ storeRouter.route("/mystore/:itemId")
                         res.json({success: false, status: "amount is larger than the amount presented in the inventory for that item"});
                     }
                     else{
-                        item.amount = req.body.amount;
-                        item.save().then((i)=>{
+                        STR1.findOneAndUpdate({_id: mongoose.Types.ObjectId(item._id)}, 
+                        {sellAmount: req.body.amount}).then((i)=>{
                             res.statusCode = 200;
                             res.setHeader("Content-Type", "application/json");
                             res.json({ success: true, status: "item edited successfully"});
-                        }).catch((err)=>{
+                        })
+                        .catch((err)=>{
                             res.statusCode = 500;
                             res.setHeader("Content-Type", "application/json");
                             res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
@@ -487,12 +508,12 @@ functions.checkNumbersValidity("amount"), (req, res, next)=>{
                                 // purchasing
                                 /*
                                     STEPS:
-                                        1- decrease the sellAmount of the storeItem and delete it if the amount reached zero
-                                        2- increase buyer's balance and decreas seller's balance 
+                                        1- decrease buyer's balance and increase seller's balance
+                                        2- create a new transaction to record the sale
                                         3- create a new inventory item for the buyer
-                                        4- create a new transaction to record the sale
+                                        4- decrease the sellAmount of the storeItem and delete it if the amount reached zero
                                 */
-                                res.json({s:true});
+                                functions.purchase(item, seller, buyer, req, res);
                             })
                             .catch((err)=>{
                                 res.statusCode = 500;
