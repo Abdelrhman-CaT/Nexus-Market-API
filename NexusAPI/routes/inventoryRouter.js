@@ -29,7 +29,17 @@ inventoryRouter.route("/")
 // add an item to my inventory
 .post(authenticate.verifyUser, functions.checkForRequiredFields("name", "amount", "price", "description", "imageLink"),
 functions.checkNumbersValidity("amount", "price"), (req, res, next)=>{
-    functions.distribute("INV", req, res);
+    functions.distribute("INV", null, null, req.body.name, req.body.description, req.body.imageLink, req.user._id,
+    req.body.amount, req.body.price).then((itemId)=>{
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: true, status: "item added successfully", id: itemId});
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
 })
 
 // get all items in my inventory

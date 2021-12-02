@@ -18,6 +18,8 @@ const INV1 = require("../models/inventoryItem1Schema");
 const INV2 = require("../models/inventoryItem2Schema");
 const STR1 = require("../models/storeItem1Schema");
 const STR2 = require("../models/storeItem2Schema");
+const TRAN1 = require("../models/transaction1Schema");
+const TRAN2 = require("../models/transaction2Schema");
 
 let token;
 let itemId;  // (inventoryItemId) needs to be reassgined beginning from testing store api
@@ -26,7 +28,8 @@ let storeId;
 let token2;
 let itemId2;
 let strItemId2;
-let token3;
+let purchasedItemId;
+let buyerId;
 
 describe("Users API Tests", ()=>{
     it("should sign me up", (done)=>{
@@ -341,16 +344,19 @@ describe("Store API Tests", ()=>{
             })
             .end((err, res)=>{
                 token2 = res.body.token;
-                request(server)
-                .put(`/api/stores/add/${strItemId}`)
-                .set("Authorization", `bearer ${token2}`)
-                .end((err, res)=>{
-                    res.should.have.status(200);
-                    res.body.should.be.a("object");
-                    res.body.should.have.property("success", true);
-                    res.body.should.have.property("status", "item added successfully to your store");
-                    done();
-                });
+                USER2.findOneAndUpdate({storeName: "npmTestingStoreName2"}, {balance: 5000}).then((i)=>{
+                    buyerId = i._id;
+                    request(server)
+                    .put(`/api/stores/add/${strItemId}`)
+                    .set("Authorization", `bearer ${token2}`)
+                    .end((err, res)=>{
+                        res.should.have.status(200);
+                        res.body.should.be.a("object");
+                        res.body.should.have.property("success", true);
+                        res.body.should.have.property("status", "item added successfully to your store");
+                        done();
+                    });
+                })
             });
         });
     });
@@ -458,7 +464,7 @@ describe("Store API Tests", ()=>{
     });
 
 
-    it("should return all items that match a search query", (done)=>{
+    it("should return all items in the store that match a search query", (done)=>{
         request(server)
         .get("/api/stores/search/items")
         .set("Authorization", `bearer ${token}`)
@@ -478,6 +484,23 @@ describe("Store API Tests", ()=>{
             res.body.items[0].should.have.property("storeId");
             res.body.items[0].should.have.property("storeName");
             
+            done();
+        });
+    });
+
+
+    it("should purchase an item from another seller", (done)=>{
+        request(server)
+        .put(`/api/stores/purchase/${strItemId}`)
+        .set("Authorization", `bearer ${token2}`)
+        .send({amount: 1})
+        .end((err, res)=>{
+            res.should.have.status(200);
+            res.body.should.be.a("object");
+            res.body.should.have.property("success", true);
+            res.body.should.have.property("status", "item purchased successfully");
+            res.body.should.have.property("id");
+            purchasedItemId = res.body.id;
             done();
         });
     });
@@ -529,14 +552,21 @@ describe("Transactions API Tests", ()=>{
                 INV1.findByIdAndDelete(itemId).then(()=>{
                     STR2.findByIdAndDelete(strItemId).then(()=>{
                         STR1.findByIdAndDelete(strItemId).then(()=>{
-                            // Removing data used in the test
                             USER1.findOneAndDelete({username: "npmTestingUserName"}).then(()=>{
                                 USER2.findOneAndDelete({storeName: "npmTestingStoreName"}).then(()=>{
                                     USER1.findOneAndDelete({username: "npmTestingUserName2"}).then(()=>{
                                         USER2.findOneAndDelete({storeName: "npmTestingStoreName2"}).then(()=>{
                                             INV2.findByIdAndDelete(itemId2).then(()=>{
                                                 INV1.findByIdAndDelete(itemId2).then(()=>{
-                                                    done();
+                                                    INV2.findByIdAndDelete(purchasedItemId).then(()=>{
+                                                        INV1.findByIdAndDelete(purchasedItemId).then(()=>{
+                                                            TRAN2.findOneAndDelete({buyer: mongoose.Types.ObjectId(buyerId)}).then(()=>{
+                                                                TRAN1.findOneAndDelete({itemName: "npmTestingItem"}).then(()=>{
+                                                                    done();
+                                                                });
+                                                            });
+                                                        });
+                                                    });
                                                 });
                                             });
                                         });
