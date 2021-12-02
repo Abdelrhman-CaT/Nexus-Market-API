@@ -169,7 +169,7 @@ storeRouter.put("/add/:itemId", authenticate.verifyUser,
                 _id: mongoose.Types.ObjectId(req.user._id)
             });
             item.save().then((i)=>{
-                STR2.findById(i._id).populate("_id").populate("item").then((ii)=>{
+                STR2.findById(i._id).populate("_id").populate("item").populate("owner").then((ii)=>{
                     let output = {
                         id: ii._id._id,
                         name: ii.item.name,
