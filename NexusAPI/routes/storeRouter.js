@@ -513,7 +513,7 @@ functions.checkNumbersValidity("amount"), (req, res, next)=>{
                                         3- create a new inventory item for the buyer
                                         4- decrease the sellAmount of the storeItem and delete it if the amount reached zero
                                 */
-                                functions.purchase(item, seller, buyer, req, res);
+                                functions.purchase(item, seller, buyer, req.body.amount, res);
                             })
                             .catch((err)=>{
                                 res.statusCode = 500;

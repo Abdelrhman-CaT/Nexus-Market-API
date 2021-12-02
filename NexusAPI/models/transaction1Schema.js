@@ -22,7 +22,7 @@ var transactionSchema = new schema({
         type: String
     },
     itemImageLink: {
-        tpye: String
+        type: String
     }
 });
 
