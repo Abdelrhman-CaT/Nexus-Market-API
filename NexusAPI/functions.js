@@ -242,7 +242,7 @@ exports.distribute = (collection, req, res, ...fields) => {
             str2Item.save().then((item)=>{
                 res.statusCode = 200;
                 res.setHeader("Content-Type", "application/json");
-                res.json({ success: true, status: "item added successfully to your store"});
+                res.json({ success: true, status: "item added successfully to your store", id: item._id});
             })
             .catch((err)=>{
                 res.statusCode = 500;
