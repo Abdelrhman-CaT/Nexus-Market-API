@@ -76,12 +76,21 @@ userRouter.post("/login", cors.corsWithOptions, functions.checkForRequiredFields
         } 
         else {
           var token = authenticate.getToken({ _id: req.user._id });
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json({
-            success: true,
-            status: "user login successfully",
-            token: token,
+          USER2.findById(req.user._id).then((user)=>{
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json({
+              success: true,
+              status: "user login successfully",
+              token: token,
+              admin: req.user.admin,
+              storeName: user.storeName
+            });
+          })
+          .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
           });
         }
       });
