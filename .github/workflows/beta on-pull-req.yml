@@ -5,19 +5,19 @@ on:
     branches: [ beta ]
 
 jobs:
-  BuildAndTest:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: '14.5.0'
-    - name: Install Dependencies
-      run: |
-        cd NexusAPI
-        npm install
-    - name: Testing Server
-      run: |
-        cd NexusAPI
-        npm install mocha chai chai-http supertest --save-dev
-        npm test
+  # BuildAndTest:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/setup-node@v2
+  #     with:
+  #       node-version: '14.5.0'
+  #   - name: Install Dependencies
+  #     run: |
+  #       cd NexusAPI
+  #       npm install
+  #   - name: Testing Server
+  #     run: |
+  #       cd NexusAPI
+  #       npm install mocha chai chai-http supertest --save-dev
+  #       npm test

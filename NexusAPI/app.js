@@ -2,7 +2,7 @@
     Author: Abdelrahman Hany
     Created on: 8-Nov-2021
 */
-
+var dotenv = require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
