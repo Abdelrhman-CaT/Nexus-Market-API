@@ -289,6 +289,50 @@ exports.distribute = (collection, req, res, ...fields) => {
 
 
 
+const createInvItemForBuyer = (buyer, item, amount, p, res)=>{
+    // 4- create a new inventory item for the buyer
+    INV2.find({owner: mongoose.Types.ObjectId(buyer._id)}).populate("_id").then((buyerInv)=>{
+        let mark = false;
+        let id;
+        for(invItem of buyerInv){
+            if(invItem._id.name == item.item.name && invItem._id.description && invItem._id.imageLink == item.item.imageLink){
+                mark = true;
+                id = invItem._id._id;
+                break;
+            }
+        }
+        if(mark == true){
+            INV2.findByIdAndUpdate(id, {$inc:{amount: amount}}).then(()=>{
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "item purchased successfully", id: id});
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            });
+        }
+        else{
+            this.distribute("INV", null, null, item.item.name, item.item.description, item.item.imageLink, buyer._id,
+            amount, p).then((itemId)=>{
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: true, status: "item purchased successfully", id: itemId});
+            })
+            .catch((err)=>{
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            });
+        }
+    })
+    .catch((err)=>{
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+    });
+}
 
 
 exports.purchase = (item, seller, buyer, amount, res)=>{
@@ -299,23 +343,38 @@ exports.purchase = (item, seller, buyer, amount, res)=>{
     buyer.save().then((b)=>{
         seller.balance += p;
         seller.save().then((s)=>{
-            //---------------------------------------------------------------------------------------
-            // 3- create a new inventory item for the buyer
-            INV2.find({owner: mongoose.Types.ObjectId(buyer._id)}).populate("_id").then((buyerInv)=>{
-                let mark = false;
-                let id;
-                for(invItem of buyerInv){
-                    if(invItem._id.name == item.item.name && invItem._id.description && invItem._id.imageLink == item.item.imageLink){
-                        mark = true;
-                        id = invItem._id._id;
-                        break;
-                    }
-                }
-                if(mark == true){
-                    INV2.findByIdAndUpdate(id, {$inc:{amount: amount}}).then(()=>{
-                        res.statusCode = 200;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json({ success: true, status: "item purchased successfully", id: id});
+            //----------------------------------------------------------------------------------
+            // 2- create a new transaction to record the sale
+            this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
+            amount, p*amount, buyer._id, seller._id).then(()=>{
+                //---------------------------------------------------------------------------------
+                // 3- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                if(item._id.sellAmount == amount){
+                    STR1.findByIdAndDelete(item._id._id).then(()=>{
+                        STR2.findByIdAndDelete(item._id._id).then(()=>{
+                            INV2.findById(item.item).then((i)=>{
+                                if(i.amount == amount){
+                                    INV1.findByIdAndDelete(i._id).then(()=>{
+                                        i.remove().then(()=>{
+                                            //res.json({state: "removed from inv and str"});
+                                            createInvItemForBuyer(buyer, item, amount, p, res);
+                                        })
+                                    })
+                                }
+                                else{
+                                    i.amount -= amount;
+                                    i.save().then(()=>{
+                                        //res.json({state: "removed from str. inv item decremented by " + amount});
+                                        createInvItemForBuyer(buyer, item, amount, p, res);
+                                    })
+                                }
+                            })
+                        })
+                        .catch((err)=>{
+                            res.statusCode = 500;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                        });
                     })
                     .catch((err)=>{
                         res.statusCode = 500;
@@ -324,11 +383,16 @@ exports.purchase = (item, seller, buyer, amount, res)=>{
                     });
                 }
                 else{
-                    this.distribute("INV", null, null, item.item.name, item.item.description, item.item.imageLink, buyer._id,
-                    amount, p).then((itemId)=>{
-                        res.statusCode = 200;
-                        res.setHeader("Content-Type", "application/json");
-                        res.json({ success: true, status: "item purchased successfully", id: itemId});
+                    STR1.findOneAndUpdate({_id: item._id._id}, {$inc:{sellAmount: -1 * amount}}).then((s)=>{
+                        INV2.findOneAndUpdate({_id: item.item}, {$inc:{amount: -1 * amount}}).then((i)=>{
+                            //res.json({state: "inv item decremented by " + amount + " alse the str item amount is decremented"});
+                            createInvItemForBuyer(buyer, item, amount, p, res);
+                        })
+                        .catch((err)=>{
+                            res.statusCode = 500;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                        });
                     })
                     .catch((err)=>{
                         res.statusCode = 500;
@@ -336,33 +400,20 @@ exports.purchase = (item, seller, buyer, amount, res)=>{
                         res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
                     });
                 }
+                //---------------------------------------------------------------------------------
             })
             .catch((err)=>{
                 res.statusCode = 500;
                 res.setHeader("Content-Type", "application/json");
                 res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
             });
-            //--------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------------
         })
         .catch((err)=>{
             res.statusCode = 500;
             res.setHeader("Content-Type", "application/json");
             res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
         });
-    })
-    .catch((err)=>{
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-    });
-
-
-    // 2- create a new transaction to record the sale
-    this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
-    amount, p*amount, buyer._id, seller._id).then(()=>{
-        //---------------------------------------------------------------------------------
-        
-        //---------------------------------------------------------------------------------
     })
     .catch((err)=>{
         res.statusCode = 500;
@@ -373,53 +424,12 @@ exports.purchase = (item, seller, buyer, amount, res)=>{
 
     
 
-    // 4- decrease the sellAmount of the storeItem and delete it if the amount reached zero
-    if(item._id.sellAmount == amount){
-        STR1.findByIdAndDelete(item._id._id).then(()=>{
-            STR2.findByIdAndDelete(item._id._id).then(()=>{
-                INV2.findById(item.item).then((i)=>{
-                    if(i.amount == amount){
-                        INV1.findByIdAndDelete(i._id).then(()=>{
-                            i.remove().then(()=>{
-                                //res.json({state: "removed from inv and str"});
-                            })
-                        })
-                    }
-                    else{
-                        i.amount -= amount;
-                        i.save().then(()=>{
-                            //res.json({state: "removed from str. inv item decremented by " + amount});
-                        })
-                    }
-                })
-            })
-            .catch((err)=>{
-                res.statusCode = 500;
-                res.setHeader("Content-Type", "application/json");
-                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-            });
-        })
-        .catch((err)=>{
-            res.statusCode = 500;
-            res.setHeader("Content-Type", "application/json");
-            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-        });
-    }
-    else{
-        STR1.findOneAndUpdate({_id: item._id._id}, {$inc:{sellAmount: -1 * amount}}).then((s)=>{
-            INV2.findOneAndUpdate({_id: item.item}, {$inc:{amount: -1 * amount}}).then((i)=>{
-                //res.json({state: "inv item decremented by " + amount + " alse the str item amount is decremented"});
-            })
-            .catch((err)=>{
-                res.statusCode = 500;
-                res.setHeader("Content-Type", "application/json");
-                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-            });
-        })
-        .catch((err)=>{
-            res.statusCode = 500;
-            res.setHeader("Content-Type", "application/json");
-            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-        });
-    }
+
+    
+    //---------------------------------------------------------------------------------------
+            
+            //--------------------------------------------------------------------------------------
+
+
+    
 }
