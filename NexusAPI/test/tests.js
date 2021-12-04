@@ -123,7 +123,7 @@ describe("Users API Tests", ()=>{
         }); 
     });
 
-    it("should remove my balance to add it to my credit card", (done)=>{
+    it("should decrease my balance and add it to my credit card", (done)=>{
         request(server)
         .put("/api/users/wallet/withdraw")
         .send({cardNum: "xx", cvv: "xx", amount: 40})
