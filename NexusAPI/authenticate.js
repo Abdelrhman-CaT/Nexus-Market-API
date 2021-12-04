@@ -14,12 +14,12 @@ passport.serializeUser(USER1.serializeUser());
 passport.deserializeUser(USER1.deserializeUser());
 
 exports.getToken = (user) => {
-    return jwt.sign(user, process.env.secKey, { expiresIn: config.jwtDuration });
+    return jwt.sign(user, (process.env.secKey || config.secretKey), { expiresIn: config.jwtDuration });
 };
 
 var opts = {
     jwtFromRequest: extractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.secKey
+    secretOrKey: (process.env.secKey || config.secretKey)
 };
 
 exports.jwtPassport = passport.use(
