@@ -7,6 +7,8 @@ var express = require('express');
 var mongoose = require("mongoose");
 var storeRouter = express.Router();
 
+var asyncLock = require("async-lock");
+var lock = new asyncLock();
 
 
 const INV1 = require("../models/inventoryItem1Schema");
@@ -478,64 +480,89 @@ storeRouter.get("/search/items", authenticate.verifyUser, functions.checkQuery("
 // purchase an item
 storeRouter.put("/purchase/:itemId", authenticate.verifyUser, functions.checkForRequiredFields("amount"),
 functions.checkNumbersValidity("amount"), (req, res, next)=>{
-    STR2.findById(req.params.itemId).populate("_id").populate("item").then((item)=>{
-        if(!item){
-            res.statusCode = 404;
-            res.setHeader("Content-Type", "application/json");
-            res.json({ success: false, status: "item doesn't exist"});
-        }
-        else{
-            if(item.owner.equals(req.user._id)){
-                res.statusCode = 403;
+    lock.acquire("k1", (done)=>{
+        console.log("Lock Entered");
+        //-------------------------------------------------------------------------------------
+        STR2.findById(req.params.itemId).populate("_id").populate("item").then((item)=>{
+            if(!item){
+                res.statusCode = 404;
                 res.setHeader("Content-Type", "application/json");
-                res.json({ success: false, status: "you already own this item"});
+                res.json({ success: false, status: "item doesn't exist"});
+                done();
             }
             else{
-                if(item._id.sellAmount < req.body.amount){
-                    res.statusCode = 400;
+                if(item.owner.equals(req.user._id)){
+                    res.statusCode = 403;
                     res.setHeader("Content-Type", "application/json");
-                    res.json({ success: false, status: "amount is larger than the available"});
+                    res.json({ success: false, status: "you already own this item"});
+                    done();
                 }
                 else{
-                    USER2.findById(req.user._id).then((buyer)=>{
-                        if(item._id.sellPrice * req.body.amount > buyer.balance){
-                            res.statusCode = 403;
-                            res.setHeader("Content-Type", "application/json");
-                            res.json({ success: false, status: "you can’t buy this item"});
-                        }
-                        else{
-                            USER2.findById(item.owner).then((seller)=>{
-                                // purchasing
-                                /*
-                                    STEPS:
-                                        1- decrease buyer's balance and increase seller's balance
-                                        2- create a new transaction to record the sale
-                                        3- decrease the sellAmount of the storeItem and delete it if the amount reached zero
-                                        4- create a new inventory item for the buyer
-                                */
-                                functions.purchase(item, seller, buyer, req.body.amount, res);
-                            })
-                            .catch((err)=>{
-                                res.statusCode = 500;
-                                res.setHeader("Content-Type", "application/json");
-                                res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-                            });
-                        }
-                    })
-                    .catch((err)=>{
-                        res.statusCode = 500;
+                    if(item._id.sellAmount < req.body.amount){
+                        res.statusCode = 400;
                         res.setHeader("Content-Type", "application/json");
-                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-                    });
+                        res.json({ success: false, status: "amount is larger than the available"});
+                        done();
+                    }
+                    else{
+                        USER2.findById(req.user._id).then((buyer)=>{
+                            if(item._id.sellPrice * req.body.amount > buyer.balance){
+                                res.statusCode = 403;
+                                res.setHeader("Content-Type", "application/json");
+                                res.json({ success: false, status: "you can’t buy this item"});
+                                done();
+                            }
+                            else{
+                                USER2.findById(item.owner).then((seller)=>{
+                                    // purchasing
+                                    /*
+                                        STEPS:
+                                            1- decrease buyer's balance and increase seller's balance
+                                            2- create a new transaction to record the sale
+                                            3- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                                            4- create a new inventory item for the buyer
+                                    */
+                                    functions.purchase(item, seller, buyer, req.body.amount, res).then((id)=>{
+                                        res.statusCode = 200;
+                                        res.setHeader("Content-Type", "application/json");
+                                        res.json({ success: true, status: "item purchased successfully", id: id});
+                                        done();
+                                    })
+                                    .catch((err)=>{
+                                        res.statusCode = 500;
+                                        res.setHeader("Content-Type", "application/json");
+                                        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                                        done();
+                                    });
+                                })
+                                .catch((err)=>{
+                                    res.statusCode = 500;
+                                    res.setHeader("Content-Type", "application/json");
+                                    res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                                    done();
+                                });
+                            }
+                        })
+                        .catch((err)=>{
+                            res.statusCode = 500;
+                            res.setHeader("Content-Type", "application/json");
+                            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+                            done();
+                        });
+                    }
                 }
             }
-        }
-    })
-    .catch((err)=>{
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
-    });
+        })
+        .catch((err)=>{
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.json({ success: false, status: "process failed", err: {name: err.name, message: err.message} });
+            done();
+        });
+        //-------------------------------------------------------------------------------------
+    }, (err, ret)=>{
+        console.log("Lock Released");
+    }, {});
 });
 
 
