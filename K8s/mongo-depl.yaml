@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-depl-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongo-1
+  template:
+    metadata:
+      name: mongo-pod-1
+      labels:
+        app: mongo-1
+    spec:
+      containers:
+        - name: mongocontainer-1
+          image: mongo
+      #     volumeMounts:
+      #       - name: mongo-storage-1
+      #         mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
+      # volumes:
+      #   - name: mongo-storage-1
+      #     persistentVolumeClaim:
+      #       claimName: mongo-pvc
+
+---
+# mongo-Servive
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-srv-1
+spec:
+  type: NodePort
+  selector:
+    app: mongo-1 # notice this is the label used in mongo pod
+  ports:
+    - protocol: TCP # by default, if we don't speicfy a protocol, it is tcp, so we don't have to type this line if we want tcp
+      port: 27017
+      targetPort: 27017
+      nodePort: 30006
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-depl-2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongo-2
+  template:
+    metadata:
+      name: mongo-pod-2
+      labels:
+        app: mongo-2
+    spec:
+      containers:
+        - name: mongocontainer-2
+          image: mongo
+      #     volumeMounts:
+      #       - name: mongo-storage-2
+      #         mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
+      # volumes:
+      #   - name: mongo-storage-2
+      #     persistentVolumeClaim:
+      #       claimName: mongo-pvc
+
+---
+# mongo-Servive
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-srv-2
+spec:
+  type: NodePort
+  selector:
+    app: mongo-2 # notice this is the label used in mongo pod
+  ports:
+    - protocol: TCP # by default, if we don't speicfy a protocol, it is tcp, so we don't have to type this line if we want tcp
+      port: 27018
+      targetPort: 27017
+      nodePort: 30007
+
+
+
