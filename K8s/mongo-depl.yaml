@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mongo-depl-1
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mongo-1
@@ -14,15 +14,16 @@ spec:
         app: mongo-1
     spec:
       containers:
-        - name: mongocontainer-1
+        - name: mongocontainer1
           image: mongo
-      #     volumeMounts:
-      #       - name: mongo-storage-1
-      #         mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
-      # volumes:
-      #   - name: mongo-storage-1
-      #     persistentVolumeClaim:
-      #       claimName: mongo-pvc
+          volumeMounts:
+            - name: mongo-storage-1
+              mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
+      volumes:
+        - name: mongo-storage-1
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+
 
 ---
 # mongo-Servive
@@ -49,7 +50,7 @@ kind: Deployment
 metadata:
   name: mongo-depl-2
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: mongo-2
@@ -60,15 +61,16 @@ spec:
         app: mongo-2
     spec:
       containers:
-        - name: mongocontainer-2
+        - name: mongocontainer2
           image: mongo
-      #     volumeMounts:
-      #       - name: mongo-storage-2
-      #         mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
-      # volumes:
-      #   - name: mongo-storage-2
-      #     persistentVolumeClaim:
-      #       claimName: mongo-pvc
+          volumeMounts:
+            - name: mongo-storage-2
+              mountPath: /data/db # This path is unique to mongodb. It is the path were mongodb stores data
+      volumes:
+        - name: mongo-storage-2
+          persistentVolumeClaim:
+            claimName: mongo-pvc-2
+
 
 ---
 # mongo-Servive
