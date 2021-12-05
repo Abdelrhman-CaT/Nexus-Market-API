@@ -1,2 +1,3 @@
 NexusAPI/node_modules/
 NexusAPI/.env
+mongo-secret.yaml

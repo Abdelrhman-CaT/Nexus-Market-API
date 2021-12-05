@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-depl
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      name: server-pod
+      labels:
+        app: server
+    spec:
+      containers:
+        - name: servercontainer
+          image: abdelrahman3cat/nexus-api
+          env:
+            - name: DB1
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds-1
+                  key: mongo_url
+            - name: DB2
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds-2
+                  key: mongo_url
+
+---
+# Server-Servive
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-srv
+spec:
+  type: NodePort
+  selector:
+    app: server # notice this is the label used in server pod
+  ports:
+    - protocol: TCP # by default, if we don't speicfy a protocol, it is tcp, so we don't have to type this line if we want tcp
+      port: 3000
+      targetPort: 3000
+      nodePort: 30005
