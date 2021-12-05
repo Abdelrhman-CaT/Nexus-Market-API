@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce # there is also ReadOnlyMany, ReadWriteMany. Details about them are screenshot
+  resources:
+    requests:
+      storage: 1Gi  # or 2Gi or 3Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc-2
+spec:
+  accessModes:
+    - ReadWriteOnce # there is also ReadOnlyMany, ReadWriteMany. Details about them are screenshot
+  resources:
+    requests:
+      storage: 1Gi  # or 2Gi or 3Gi
