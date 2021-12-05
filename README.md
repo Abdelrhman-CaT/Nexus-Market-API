@@ -61,7 +61,7 @@
 
  <!--Contributers will be visible when the repo becomes public.-->
 
-<a href="https://github.com/<accountName>/<repo>/graphs/contributors">
+<a href="https://github.com/Abdelrhman-CaT/Nexus-Market-API/graphs/contributors">
     
   <img src="https://contributors-img.web.app/image?repo=<accountName>/<repo>"/>
 </a>
