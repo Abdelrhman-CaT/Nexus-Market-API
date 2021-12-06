@@ -67,7 +67,7 @@ app.use(passport.initialize());
 
 
 // Applying Routers
-app.use('/api', indexRouter);
+app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use("/api/myinventory", inventoryRouter);
 app.use("/api/stores", storeRouter)

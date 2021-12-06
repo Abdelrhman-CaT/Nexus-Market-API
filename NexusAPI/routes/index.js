@@ -13,7 +13,7 @@ index.options("*", cors.corsWithOptions, (req, res, next) => {
 
 /* GET home page. */
 index.get('/', cors.corsWithOptions, function(req, res, next) {
-  res.render('index', { title: 'Deployed Successfully' });
+  res.render('index', { title: 'Deployed Successfully\nWelcome To Nexus Market API' });
 });
 
 module.exports = index;
