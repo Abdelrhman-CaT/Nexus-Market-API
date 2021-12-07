@@ -517,16 +517,17 @@ functions.checkNumbersValidity("amount"), (req, res, next)=>{
                                     // purchasing
                                     /*
                                         STEPS:
+                                                    Critical Section Starts
                                             1- decrease buyer's balance and increase seller's balance
-                                            2- create a new transaction to record the sale
-                                            3- decrease the sellAmount of the storeItem and delete it if the amount reached zero
-                                            4- create a new inventory item for the buyer
+                                            2- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                                                    Critical Section Ends
+                                            3- create a new inventory item for the buyer
+                                            4- create a new transaction to record the sale
                                     */
-                                    functions.purchase(item, seller, buyer, req.body.amount, res).then((id)=>{
+                                    functions.purchase(item, seller, buyer, req.body.amount, done).then((id)=>{
                                         res.statusCode = 200;
                                         res.setHeader("Content-Type", "application/json");
                                         res.json({ success: true, status: "item purchased successfully", id: id});
-                                        done();
                                     })
                                     .catch((err)=>{
                                         res.statusCode = 500;
