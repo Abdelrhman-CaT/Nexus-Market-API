@@ -290,9 +290,10 @@ exports.distribute = (collection, req, res, ...fields) => {
 
 
 
-const createInvItemForBuyer = (buyer, item, amount, p, res)=>{
+const createInvItemForBuyer = (buyer, seller, item, amount, p)=>{
     return new Promise((resolve, reject)=>{
-        // 4- create a new inventory item for the buyer
+        //------------------------------------------------------------------
+        // 3- create a new inventory item for the buyer
         INV2.find({owner: mongoose.Types.ObjectId(buyer._id)}).populate("_id").then((buyerInv)=>{
             let mark = false;
             let id;
@@ -305,7 +306,16 @@ const createInvItemForBuyer = (buyer, item, amount, p, res)=>{
             }
             if(mark == true){
                 INV2.findByIdAndUpdate(id, {$inc:{amount: amount}}).then(()=>{
-                    resolve(id);
+                    //------------------------------------------------------------------
+                    // 4- create a new transaction to record the sale
+                    this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
+                    amount, p*amount, buyer._id, seller._id).then(()=>{
+                        resolve(id);
+                    })
+                    .catch((err)=>{
+                        reject(err);
+                    });
+                    //------------------------------------------------------------------
                 })
                 .catch((err)=>{
                     reject(err);
@@ -314,7 +324,16 @@ const createInvItemForBuyer = (buyer, item, amount, p, res)=>{
             else{
                 this.distribute("INV", null, null, item.item.name, item.item.description, item.item.imageLink, buyer._id,
                 amount, p).then((itemId)=>{
-                    resolve(itemId);
+                    //------------------------------------------------------------------
+                    // 4- create a new transaction to record the sale
+                    this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
+                    amount, p*amount, buyer._id, seller._id).then(()=>{
+                        resolve(itemId);
+                    })
+                    .catch((err)=>{
+                        reject(err);
+                    });
+                    //------------------------------------------------------------------
                 })
                 .catch((err)=>{
                     reject(err);
@@ -324,11 +343,12 @@ const createInvItemForBuyer = (buyer, item, amount, p, res)=>{
         .catch((err)=>{
             reject(err);
         });
+        //------------------------------------------------------------------
     });
 }
 
 
-exports.purchase = (item, seller, buyer, amount)=>{
+exports.purchase = (item, seller, buyer, amount, done)=>{
     return new Promise((resolve, reject)=>{
         // 1- decrease buyer's balance and increase seller's balance
         let p = item._id.sellPrice;
@@ -336,26 +356,19 @@ exports.purchase = (item, seller, buyer, amount)=>{
         buyer.save().then((b)=>{
             seller.balance += p;
             seller.save().then((s)=>{
-                //----------------------------------------------------------------------------------
-                // 2- create a new transaction to record the sale
-                this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
-                amount, p*amount, buyer._id, seller._id).then(()=>{
-                    //---------------------------------------------------------------------------------
-                    // 3- decrease the sellAmount of the storeItem and delete it if the amount reached zero
-                    if(item._id.sellAmount == amount){
-                        STR1.findByIdAndDelete(item._id._id).then(()=>{
-                            STR2.findByIdAndDelete(item._id._id).then(()=>{
-                                INV2.findById(item.item).then((i)=>{
-                                    if(i.amount == amount){
-                                        INV1.findByIdAndDelete(i._id).then(()=>{
-                                            i.remove().then(()=>{
-                                                //res.json({state: "removed from inv and str"});
-                                                createInvItemForBuyer(buyer, item, amount, p).then((id)=>{
-                                                    resolve(id);
-                                                })
-                                                .catch((err)=>{
-                                                    reject(err);
-                                                });
+                //---------------------------------------------------------------------------------
+                // 2- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                if(item._id.sellAmount == amount){
+                    STR1.findByIdAndDelete(item._id._id).then(()=>{
+                        STR2.findByIdAndDelete(item._id._id).then(()=>{
+                            INV2.findById(item.item).then((i)=>{
+                                if(i.amount == amount){
+                                    INV1.findByIdAndDelete(i._id).then(()=>{
+                                        i.remove().then(()=>{
+                                            //res.json({state: "removed from inv and str"});
+                                            done();
+                                            createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                                                resolve(id);
                                             })
                                             .catch((err)=>{
                                                 reject(err);
@@ -363,58 +376,58 @@ exports.purchase = (item, seller, buyer, amount)=>{
                                         })
                                         .catch((err)=>{
                                             reject(err);
-                                        })
-                                    }
-                                    else{
-                                        i.amount -= amount;
-                                        i.save().then(()=>{
-                                            //res.json({state: "removed from str. inv item decremented by " + amount});
-                                            createInvItemForBuyer(buyer, item, amount, p).then((id)=>{
-                                                resolve(id);
-                                            })
-                                            .catch((err)=>{
-                                                reject(err);
-                                            })
+                                        });
+                                    })
+                                    .catch((err)=>{
+                                        reject(err);
+                                    })
+                                }
+                                else{
+                                    i.amount -= amount;
+                                    i.save().then(()=>{
+                                        //res.json({state: "removed from str. inv item decremented by " + amount});
+                                        done();
+                                        createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                                            resolve(id);
                                         })
                                         .catch((err)=>{
                                             reject(err);
                                         })
-                                    }
-                                })
+                                    })
+                                    .catch((err)=>{
+                                        reject(err);
+                                    });
+                                }
                             })
-                            .catch((err)=>{
-                                reject(err);
-                            });
                         })
                         .catch((err)=>{
                             reject(err);
                         });
-                    }
-                    else{
-                        STR1.findOneAndUpdate({_id: item._id._id}, {$inc:{sellAmount: -1 * amount}}).then((s)=>{
-                            INV2.findOneAndUpdate({_id: item.item}, {$inc:{amount: -1 * amount}}).then((i)=>{
-                                //res.json({state: "inv item decremented by " + amount + " alse the str item amount is decremented"});
-                                createInvItemForBuyer(buyer, item, amount, p).then((id)=>{
-                                    resolve(id);
-                                })
-                                .catch((err)=>{
-                                    reject(err);
-                                })
+                    })
+                    .catch((err)=>{
+                        reject(err);
+                    });
+                }
+                else{
+                    STR1.findOneAndUpdate({_id: item._id._id}, {$inc:{sellAmount: -1 * amount}}).then((s)=>{
+                        INV2.findOneAndUpdate({_id: item.item}, {$inc:{amount: -1 * amount}}).then((i)=>{
+                            //res.json({state: "inv item decremented by " + amount + " alse the str item amount is decremented"});
+                            done();
+                            createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                                resolve(id);
                             })
                             .catch((err)=>{
                                 reject(err);
-                            });
+                            })
                         })
                         .catch((err)=>{
                             reject(err);
                         });
-                    }
-                    //---------------------------------------------------------------------------------
-                })
-                .catch((err)=>{
-                    reject(err);
-                });
-                //----------------------------------------------------------------------------------
+                    })
+                    .catch((err)=>{
+                        reject(err);
+                    });
+                }
             })
             .catch((err)=>{
                 reject(err);
