@@ -517,8 +517,10 @@ functions.checkNumbersValidity("amount"), (req, res, next)=>{
                                     // purchasing
                                     /*
                                         STEPS:
+                                                    Critical Section Starts
                                             1- decrease buyer's balance and increase seller's balance
                                             2- decrease the sellAmount of the storeItem and delete it if the amount reached zero
+                                                    Critical Section Ends
                                             3- create a new inventory item for the buyer
                                             4- create a new transaction to record the sale
                                     */
