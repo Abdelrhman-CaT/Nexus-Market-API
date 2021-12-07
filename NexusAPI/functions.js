@@ -290,7 +290,7 @@ exports.distribute = (collection, req, res, ...fields) => {
 
 
 
-const createInvItemForBuyer = (buyer, seller, item, amount, p)=>{
+const createInvItemForBuyer = (buyer, seller, item, amount, p, done)=>{
     return new Promise((resolve, reject)=>{
         //------------------------------------------------------------------
         // 3- create a new inventory item for the buyer
@@ -306,6 +306,7 @@ const createInvItemForBuyer = (buyer, seller, item, amount, p)=>{
             }
             if(mark == true){
                 INV2.findByIdAndUpdate(id, {$inc:{amount: amount}}).then(()=>{
+                    done();
                     //------------------------------------------------------------------
                     // 4- create a new transaction to record the sale
                     this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
@@ -324,6 +325,7 @@ const createInvItemForBuyer = (buyer, seller, item, amount, p)=>{
             else{
                 this.distribute("INV", null, null, item.item.name, item.item.description, item.item.imageLink, buyer._id,
                 amount, p).then((itemId)=>{
+                    done();
                     //------------------------------------------------------------------
                     // 4- create a new transaction to record the sale
                     this.distribute("TRANS", null, null, item.item.name, item.item.imageLink, 
@@ -366,8 +368,7 @@ exports.purchase = (item, seller, buyer, amount, done)=>{
                                     INV1.findByIdAndDelete(i._id).then(()=>{
                                         i.remove().then(()=>{
                                             //res.json({state: "removed from inv and str"});
-                                            done();
-                                            createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                                            createInvItemForBuyer(buyer, seller, item, amount, p, done).then((id)=>{
                                                 resolve(id);
                                             })
                                             .catch((err)=>{
@@ -386,8 +387,7 @@ exports.purchase = (item, seller, buyer, amount, done)=>{
                                     i.amount -= amount;
                                     i.save().then(()=>{
                                         //res.json({state: "removed from str. inv item decremented by " + amount});
-                                        done();
-                                        createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                                        createInvItemForBuyer(buyer, seller, item, amount, p, done).then((id)=>{
                                             resolve(id);
                                         })
                                         .catch((err)=>{
@@ -412,8 +412,7 @@ exports.purchase = (item, seller, buyer, amount, done)=>{
                     STR1.findOneAndUpdate({_id: item._id._id}, {$inc:{sellAmount: -1 * amount}}).then((s)=>{
                         INV2.findOneAndUpdate({_id: item.item}, {$inc:{amount: -1 * amount}}).then((i)=>{
                             //res.json({state: "inv item decremented by " + amount + " alse the str item amount is decremented"});
-                            done();
-                            createInvItemForBuyer(buyer, seller, item, amount, p).then((id)=>{
+                            createInvItemForBuyer(buyer, seller, item, amount, p, done).then((id)=>{
                                 resolve(id);
                             })
                             .catch((err)=>{
