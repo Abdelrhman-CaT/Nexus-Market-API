@@ -63,5 +63,5 @@
 
 <a href="https://github.com/Abdelrhman-CaT/Nexus-Market-API/graphs/contributors">
     
-  <img src="https://contributors-img.web.app/image?repo=<accountName>/<repo>"/>
+  <img src="https://contributors-img.web.app/image?repo=Abdelrhman-CaT/Nexus-Market-API"/>
 </a>

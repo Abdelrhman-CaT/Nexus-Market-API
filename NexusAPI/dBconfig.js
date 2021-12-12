@@ -9,7 +9,7 @@ const config = require("./config");
 // For distributed db
 
 try{
-    exports.d1 = Mongoose.createConnection(process.env.DB1 || config.db1);
+    exports.d1 = Mongoose.createConnection(process.env.DB1 || process.env.TESTDB1 || config.local);
     //console.log("Connected to DB 1");
   }
   catch(err){
@@ -17,7 +17,7 @@ try{
   }
   
   try{
-    exports.d2 = Mongoose.createConnection(process.env.DB2 || config.db2);
+    exports.d2 = Mongoose.createConnection(process.env.DB2 || process.env.TESTDB2 || config.local);
     //console.log("Connected to DB 2");
   }
   catch(err){
